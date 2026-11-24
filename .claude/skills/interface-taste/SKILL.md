@@ -9,7 +9,7 @@ description: Visual design taste for web UIs - a quiet, dense, near-monochrome i
 
 This app is built on ui-sdk (`@ui-sdk/react` + `@ui-sdk/core/web.css`) with plain CSS, no Tailwind. Load the `ui-sdk` skill first. It decides which component to use, ARIA, state attributes and contrast, and it wins wherever this skill still seems to disagree.
 
-- Tokens: `src/styles/tokens.css`. Each color is `light-dark(<light>, <dark>)`, and the ui-sdk `--ui-*` tokens are set from them. Nothing else writes a color literal, and `src/test/style-guard.test.ts` enforces that.
+- Tokens: `src/styles/tokens.css`. Colours are `light-dark(<light>, <dark>)` pairs, or `color-mix()`/`var()` values derived from those tokens, and the ui-sdk `--ui-*` tokens are set from them. Nothing else writes a color literal, and `src/test/style-guard.test.ts` enforces that.
 - Token names, values and the font, size, radius, easing and duration scales live in `src/styles/tokens.css`. Read it instead of trusting a list here; add new tokens there.
 - Style ui-sdk parts by `[data-slot="…"]` and their state attributes (`data-open`, `data-pressed`, `data-checked`, `data-starting-style`, `data-ending-style`…), in `src/index.css` or a CSS file next to the component.
 
@@ -26,7 +26,7 @@ Build the palette as **semantic ramps**, then style only through them:
 - **Text**, three tiers: `primary` (values, names, headings), `secondary` (body, prose), `muted` (labels, metadata, placeholders, icons at rest).
 - **One accent.** It marks focus rings, text selection, the current page, the active option, link hover, and one ambient glow. Use it sparingly enough that it always means "here" or "go".
 - **Status colours** named by meaning (ok, warning, danger, info, plus a graded scale when the data is graded). They colour data and state, never decoration.
-- **Colour marks exceptions.** Normal states stay neutral: a healthy status keeps a small ok dot, but its word and numbers sit in `secondary`/`muted`. Only warning and danger values take colour.
+- **Colour marks exceptions.** Normal states stay neutral: a healthy state keeps a small ok dot, but its word and numbers sit in `secondary`/`muted`. Only warning and danger values take colour.
 - **Muted text passes AA** (4.5:1) on `surface`, `surface-card` and `surface-hover` (it is `--ui-muted`, the selected/hover fill), in both themes. Check the ratio when you set `muted`; it is the token most often too faint. The style-guard test checks it.
 
 Derive every tint from a token with `color-mix(in srgb, <token> N%, transparent)` instead of adding hex values:
@@ -65,16 +65,16 @@ Sizes and rhythm:
 
 ## Hierarchy and density
 
-- Rank by **text tier and opacity first**. Items that matter less (unavailable, poor fit) drop to `--fg-muted` (still 4.5:1), so they stay scannable without competing. Opacity below that is only for **disabled** controls, which WCAG exempts. Never fade readable text below 4.5:1.
-- Dense lists are **open rows** under a section head: ~3.3rem tall, 1px `edge-subtle` dividers, no divider on the last row, and no card border or fill around the list. Offer a compact **list mode** beside a card mode when people scan many items; list mode drops secondary fields and keeps one quiet row of name, key metric, score. The mode switch is a ui-sdk **Segmented Control**, persisted with `createPreference` if it should stick.
+- Rank by **text tier and opacity first**. Items that matter less (unavailable, low priority) drop to `--fg-muted` (still 4.5:1), so they stay scannable without competing. Opacity below that is only for **disabled** controls, which WCAG exempts. Never fade readable text below 4.5:1.
+- Dense lists are **open rows** under a section head: ~3.3rem tall, 1px `edge-subtle` dividers, no divider on the last row, and no card border or fill around the list. Offer a compact **list mode** beside a card mode when people scan many items; list mode drops secondary fields and keeps one quiet row of name and key value. The mode switch is a ui-sdk **Segmented Control**, persisted with `createPreference` if it should stick.
 - Proportions use ui-sdk **Meter** (or **Progress** for task progress), restyled to 3px and fully rounded. Reset `web.css`'s `min-width: 12rem` where needed, and keep the value as text. A segmented distribution with no ui-sdk equivalent is decorative markup with `aria-hidden` and text counts beside it.
 - Separators are glyphs in `edge` or `muted` colour: `/` in breadcrumbs, `·` between inline items.
-- Show the **unknown state** explicitly: `—` for a missing value, `detecting...` while loading.
+- Show the **unknown state** explicitly: `—` for a missing value, `Loading…` while loading.
 
 ## Shape and depth
 
 - Radius scale: `--ui-radius` drives every ui-sdk control. Use `--radius-sm` for code, `--radius-md` for small inline controls, `--radius-lg` for menus, popovers and cards, and 999px for pills and meters. With `--ui-radius` above 0, switch and slider thumbs are fully round (ui-sdk behaviour).
-- Flat by default. Shadows appear only on **floating layers** (tooltips, menus, popovers, drawers). A floating layer is the card surface made translucent (`--surface-floating`) with `backdrop-filter: blur(var(--blur-floating))`, the 1px `--ui-border` edge, and the soft wide `--ui-shadow`. `src/index.css` applies it to the ui-sdk popup slots; add new popup slots to that list. Measure painted contrast over real content (ui-sdk testing.md › Contrast).
+- Flat by default. Shadows appear only on **floating layers** (menus, popovers, selects, hover cards, date pickers). A floating layer is the card surface made translucent (`--surface-floating`) with `backdrop-filter: blur(var(--blur-floating))`, the 1px `--ui-border` edge, and the soft wide `--ui-shadow`. Tooltips keep ui-sdk's inverted style (foreground fill, background text, no border) and only share the fade motion. Drawers and dialogs are not floating layers here. One popup slot list in `src/index.css` sets both the surface and the motion; add new popup slots to it. Measure painted contrast over real content (ui-sdk testing.md › Contrast).
 - Icons are small (12-18px), `currentColor`, `muted` at rest, brightening to `primary` or accent on hover.
 
 ## Page patterns
@@ -87,7 +87,7 @@ Sizes and rhythm:
 
 ## Microcopy
 
-- Summaries are one plain sentence with the numbers lifted to `primary`: "**12** of **80** items fit comfortably".
+- Summaries are one plain sentence with the numbers lifted to `primary`: "**12** of **80** items selected".
 - Turn numeric thresholds into plain words people feel (for example Low, Normal, High) and colour them by status only when the value is an exception.
 - Tooltips explain jargon in one line: "TERM — what it is. What higher means." Use ui-sdk **Tooltip**.
 - Say when a figure is an estimate, and say why, in a visible callout.

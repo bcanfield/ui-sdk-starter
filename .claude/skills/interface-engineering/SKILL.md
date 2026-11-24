@@ -29,7 +29,7 @@ The page holds its final shape before data arrives:
 
 - Reserve layout space for loading states: render **skeletons with the real row height and count**, and replace them in place. Keep them visible until the data that decides the layout is known; hiding groups early collapses the page.
 - Give regions that fill later a `min-height` equal to their filled size: titles (`line-height × font-size`), one-line ledes (`1.6em`), lists (`rows × row height` via a custom property such as `--row: 3.35rem`), button rows.
-- Render a fixed number of slots (for example, every spec field) with `—` placeholders, so detection cannot grow or shrink the row.
+- Render a fixed number of slots (for example, every field of a row) with `—` placeholders, so loading cannot grow or shrink the row.
 - Hide not-yet-ready content with `visibility: hidden` (keeps its box), and use `display: none` only for content whose space should be released.
 - Mark the region `aria-busy="true"` while loading and flip it to `false` when filled.
 - Comments are rare (ui-sdk rule): comment a size that prevents a shift only when a reader would otherwise remove or break it, in one line saying what it prevents.
@@ -45,7 +45,7 @@ The page holds its final shape before data arrives:
 
 - Content lives in a centred container with a max width chosen per page type (wide for the app shell, ~3xl for reading) and side padding `1rem` that grows to `1.5rem` from the small breakpoint.
 - On narrow screens, **drop columns by priority** rather than squeezing them: redefine `grid-template-columns` at each breakpoint and hide the least important fields.
-- A row of spec fields becomes a two-column grid on mobile with the leading field spanning both columns.
+- A row of fields becomes a two-column grid on mobile with the leading field spanning both columns.
 - Desktop-only affordances (keyboard hints, view toggles) appear from the small breakpoint up.
 - Mobile navigation: use ui-sdk **Drawer** or **Dialog**. They handle scroll lock, Escape, focus and `aria-expanded`.
 - ui-sdk controls are `--ui-spacing × 8` = 32px tall, which passes WCAG 2.5.8 AA. Don't resize individual controls. If a touch-first screen needs larger targets, raise `--ui-spacing` for that scope.
@@ -74,7 +74,7 @@ Express component state as attributes and style from them, so the visual and the
 - **Tooltips**: use ui-sdk **Tooltip**. It handles focus, hover, Escape and placement. An icon-only button's name comes from `aria-label` (ui-sdk sizes it square).
 - **Live feedback**: use ui-sdk **Toast**, or an `<output aria-label>` near the control. A copy button may also update its own `aria-label`.
 - Use ui-sdk **Collapsible** or **Accordion** for disclosure (agent-visible; lint forbids `<details>`).
-- Status is never colour-only: pair it with a word, icon or grade letter.
+- Status is never colour-only: pair it with a word, icon or label.
 
 ## Keyboard
 

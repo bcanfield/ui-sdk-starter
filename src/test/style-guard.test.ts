@@ -30,17 +30,33 @@ const colorProperty =
 const styleContext =
   /(?:\b(?:color|background[\w]*|border[\w]*|outline[\w]*|fill|stroke|boxShadow|textDecorationColor|accentColor|caretColor)\s*:|\bstyle\s*=)\s*\{?[^;\n]*?["'`]#[0-9a-f]{3,8}\b/i
 
+const colorKey =
+  "color|background[\\w]*|border[\\w]*|outline[\\w]*|fill|stroke|boxShadow|textDecorationColor|accentColor|caretColor"
+// A named colour as the value of a style key: `color: "red"`, `style={{ borderColor: 'white' }}`.
+const namedInStyle = new RegExp(`\\b(?:${colorKey})\\s*:\\s*["'\`]([^"'\`\\n]*)["'\`]`, "gi")
+
 function hasNamedColor(value: string) {
   return (value.toLowerCase().match(/[a-z]+/g) ?? []).some((w) => named.has(w))
+}
+
+function hasNamedStyleColor(text: string) {
+  return [...text.matchAll(namedInStyle)].some((m) => hasNamedColor(m[1]!.replace(/var\(\s*--[\w-]+/g, "var(")))
 }
 
 function writesColor(path: string, text: string) {
   const stripped = text.replace(comments, "").replace(anchors, "")
   if (colorFn.test(stripped)) return true
-  if (!path.endsWith(".css")) return path.endsWith(".html") ? hex.test(stripped) : styleContext.test(stripped)
+  if (!path.endsWith(".css")) return path.endsWith(".html") ? hex.test(stripped) : styleContext.test(stripped) || hasNamedStyleColor(stripped)
   for (const [, prop, value] of stripped.matchAll(declaration)) {
-    if (!value || !colorProperty.test(prop!.toLowerCase())) continue
-    if (hex.test(value) || hasNamedColor(value.replace(/var\([^)]*\)|url\([^)]*\)/gi, ""))) return true
+    if (!value) continue
+    const custom = prop!.startsWith("--")
+    if (!custom && !colorProperty.test(prop!.toLowerCase())) continue
+    if (hex.test(value)) return true
+    // Only a var() fallback (after the first comma) is a value; the variable name is not.
+    const fallbacks = [...value.matchAll(/var\(\s*--[\w-]+\s*,([^)]*)\)/gi)].map((m) => m[1]!)
+    const bare = value.replace(/var\([^)]*\)|url\([^)]*\)/gi, "")
+    if (hasNamedColor(bare) && (custom || colorProperty.test(prop!.toLowerCase()))) return true
+    if (fallbacks.some(hasNamedColor)) return true
   }
   return false
 }
@@ -69,11 +85,20 @@ test("the color check ignores anchors and finds real colors", () => {
   expect(writesColor("a.css", "a { color: currentColor; fill: none; background: transparent; outline-color: inherit }")).toBe(false)
   expect(writesColor("a.css", "a { animation-name: red; font-family: var(--white) }")).toBe(false)
   expect(writesColor("a.css", "a { color: #fafafa }")).toBe(true)
+  expect(writesColor("a.css", "a { --x: white }")).toBe(true)
+  expect(writesColor("a.css", "a { --x: #fff }")).toBe(true)
+  expect(writesColor("a.css", "a { color: var(--x, white) }")).toBe(true)
+  expect(writesColor("a.css", "a { --x: var(--y, red) }")).toBe(true)
+  expect(writesColor("a.css", "a { color: var(--white); --x: var(--red); --y: 1px }")).toBe(false)
+  expect(writesColor("a.tsx", '<i style={{ color: "red" }} />')).toBe(true)
+  expect(writesColor("a.tsx", "const s = { background: 'white' }")).toBe(true)
+  expect(writesColor("a.tsx", 'const s = { color: "white" }')).toBe(true)
+  expect(writesColor("a.tsx", 'const s = { color: "var(--accent)", name: "red team" }; const t = "red team"')).toBe(false)
   expect(writesColor("index.html", '<meta name="theme-color" content="#000000" />')).toBe(true)
 })
 
 function withoutNoPreference(text: string) {
-  const open = /@media\s*\(\s*prefers-reduced-motion\s*:\s*no-preference\s*\)\s*\{/g
+  const open = /@media\b[^{};]*\(\s*prefers-reduced-motion\s*:\s*no-preference\s*\)[^{};]*\{/g
   let out = ""
   let last = 0
   for (const m of text.matchAll(open)) {
@@ -108,6 +133,11 @@ test("stylesheets name the properties they transition and honour reduced motion"
       /\b(?:transition(?:-property)?)\s*:[^;{}]*\b(?:translate|rotate|transform|scale)\b/
     )
   }
+})
+
+test("a compound no-preference media query still counts as no-preference", () => {
+  const css = "@media (hover: hover) and (prefers-reduced-motion: no-preference) { a { scale: 1 } } b { color: red }"
+  expect(withoutNoPreference(css)).toBe(" b { color: red }")
 })
 
 test("index.css declares the ui-sdk layer first", () => {
