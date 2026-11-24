@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react", "jsx-a11y"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "builtin": true
+  },
+  "ignorePatterns": [".claude/**"],
+  "options": {
+    "typeAware": true,
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/unsupported-syntax": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.test.{ts,tsx}", "src/test/**"],
+      "plugins": ["vitest"],
+      "rules": {
+        "vitest/valid-expect": ["error", { "maxArgs": 2 }]
+      }
+    },
+    {
+      "files": ["*.config.ts"],
+      "env": { "browser": false, "node": true }
+    }
+  ]
+}

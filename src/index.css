@@ -1,0 +1,41 @@
+@layer ui-sdk;
+
+body {
+  margin: 0;
+  background: var(--ui-background);
+  color: var(--ui-foreground);
+  font-family: var(--ui-font-sans);
+}
+
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+section {
+  margin-block: 2rem;
+}
+
+.caption {
+  color: var(--ui-muted-foreground);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block: 0.5rem;
+}
+
+form {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
