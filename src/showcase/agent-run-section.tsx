@@ -17,7 +17,7 @@ function AgentRunSection({ pacing = defaultPacing }: { pacing?: Pacing }) {
     >
       <div className="run-grid" ref={grid}>
         <ProjectPane key={player.paneKey} />
-        <AgentConsole player={player} history={history} />
+        <AgentConsole player={player} history={history} paneRoot={grid} />
       </div>
     </Section>
   )

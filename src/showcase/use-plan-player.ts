@@ -1,7 +1,7 @@
-import { elementOf } from "@ui-sdk/react/observe"
 import { overlays } from "@ui-sdk/react/overlays"
 import { useEffect, useRef, useState, type RefObject } from "react"
 import { agent } from "../agent.ts"
+import { inPane } from "./pane-scope.ts"
 import { describeChanges, describeRead, plan } from "./plan.ts"
 
 type StepState = "idle" | "running" | "waiting" | "done" | "refused"
@@ -72,12 +72,6 @@ function usePlanPlayer(pacing: Pacing, paneRoot: RefObject<HTMLElement | null>) 
     []
   )
 
-  function inPane(entry: { ref: string }) {
-    const pane = paneRoot.current?.querySelector("[data-pane]")
-    const element = elementOf(entry.ref) as HTMLElement | undefined
-    return Boolean(pane && element && pane.contains(element))
-  }
-
   async function runStep(index: number, signal: AbortSignal, id: number) {
     const step = plan[index]!
     current.current = index
@@ -88,7 +82,10 @@ function usePlanPlayer(pacing: Pacing, paneRoot: RefObject<HTMLElement | null>) 
     if (!step.steps) {
       const closed = await agent.query({ closed: true })
       if (id !== runId.current) return false
-      setRow(index, { state: "done", note: describeRead(closed, agent.snapshot(), inPane) })
+      setRow(index, { state: "done", note: describeRead(closed, agent.snapshot(), (entry) =>
+          inPane(paneRoot, entry)
+        ),
+      })
       return finish(index, id)
     }
 

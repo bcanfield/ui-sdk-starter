@@ -1,3 +1,4 @@
+import { PANE_TABS } from "./pane-items.ts"
 import type { AgentChange, AgentComponent, AgentStep } from "@ui-sdk/react/agent"
 
 // `target` keys the agent trace's anchor. A step with no `steps` is the read step.
@@ -74,6 +75,7 @@ function describeRead(
 
 function describeChanges(changes: AgentChange[]) {
   return changes
+    .filter((change) => change.label !== PANE_TABS)
     .map((change) => `${change.label ?? change.component} ${change.key} → ${JSON.stringify(change.value)}`)
     .join(", ")
 }
