@@ -2,7 +2,7 @@ import { Button } from "@ui-sdk/react/button"
 import { Toggle } from "@ui-sdk/react/toggle"
 import { useState } from "react"
 import { agent } from "../agent.ts"
-import { Section } from "./section.tsx"
+import { Section } from "../sections/section.tsx"
 
 function AgentSection() {
   const [muted, setMuted] = useState(false)

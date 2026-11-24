@@ -12,8 +12,9 @@ Needs Node 24 (`.nvmrc`) and pnpm 11 (pinned in `package.json`).
 pnpm install && pnpm dev
 ```
 
-Then rename `name` in `package.json` and `<title>` in `index.html`, and replace
-the sections in `src/sections/`. Keep `src/agent.ts` and its import in
+Then rename `name` in `package.json` and `<title>` in `index.html`, and strip
+the showcase: delete the `src/showcase/` folder and the `<Showcase />` line in
+`src/App.tsx`. Keep `src/agent.ts` and its import in
 `src/main.tsx`, `<OverlayHost />` in `src/App.tsx` (the bridge's `confirm()`
 needs it), `src/test/setup.ts`, and one agent test per interface. To restyle, edit the tokens in
 `src/styles/tokens.css`.

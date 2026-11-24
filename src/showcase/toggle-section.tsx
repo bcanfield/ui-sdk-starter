@@ -1,5 +1,5 @@
 import { Toggle } from "@ui-sdk/react/toggle"
-import { Section } from "./section.tsx"
+import { Section } from "../sections/section.tsx"
 
 function ToggleSection() {
   return (
