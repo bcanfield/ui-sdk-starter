@@ -47,7 +47,7 @@ function AgentConsole({
 }) {
   const [tab, selectTab] = useConsoleTab()
   const [offered] = useState(webMcpOffered)
-  const snapshot = usePaneSnapshot(paneRoot, player.paneKey)
+  const snapshot = usePaneSnapshot(paneRoot, player.paneKey, tab === "snapshot")
   const { rows, running, finished, result } = player
 
   return (
