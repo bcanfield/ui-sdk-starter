@@ -43,6 +43,7 @@
     --run-width: min(var(--width-wide), calc(100vw - 4rem));
     width: var(--run-width);
     margin-inline: calc((100% - var(--run-width)) / 2);
+    margin-block-start: 1.25rem;
   }
 
   .run-grid {
@@ -447,6 +448,14 @@
     margin: 0;
     color: var(--fg-primary);
     font-size: var(--size-hero);
+  }
+}
+
+/* Wide, Run and the whole General tab stay above the fold at 1280×800. */
+@media (min-width: 56rem) {
+  .hero {
+    gap: 0.5rem;
+    padding-block: 1.25rem 0.5rem;
   }
 }
 

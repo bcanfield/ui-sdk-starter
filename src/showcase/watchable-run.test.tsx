@@ -95,8 +95,10 @@ test("the trace lands on each step's target, on a closed panel's tab first, and 
     "visibility",
   ])
   expect(agent.snapshot().find((entry) => entry.label === "Visibility")?.value).toBe("public")
-  const mark = container.querySelector('[data-trace="mark"]')
-  expect(mark).toHaveAttribute("data-slot", "project-mark-trigger")
+  // Like every other field, the mark's box holds its label, so the AGENT tag sits above the label, not on it.
+  const mark = container.querySelector<HTMLElement>('[data-trace="mark"]')!
+  expect(within(mark).getByText("Project mark")).toBeInTheDocument()
+  expect(mark.querySelector('[data-slot="project-mark-trigger"]')).not.toBeNull()
 })
 
 test("the step at the gate is marked waiting with the trace on its control, and Reset takes the trace away", async () => {

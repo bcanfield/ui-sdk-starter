@@ -105,6 +105,13 @@ kbd {
   transition: none;
 }
 
+/* OverlayHost's confirm puts its two buttons in a bare div, so they touched. */
+[data-slot="alert-dialog-content"] > div:has(> [data-slot="alert-dialog-close"]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .skip-link {
   position: absolute;
   left: 1rem;
