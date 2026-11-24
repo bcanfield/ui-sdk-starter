@@ -64,9 +64,9 @@ function ProjectPane() {
                 </NumberInputGroup>
               </NumberInput>
             </Field>
-            <Field>
+            <Field data-trace="mark">
               <FieldLabel>Project mark</FieldLabel>
-              <ProjectMark defaultValue="flag" triggerProps={{ "data-trace": "mark" }} />
+              <ProjectMark defaultValue="flag" />
             </Field>
             <div data-agent-confirm="Changes who can see Apollo">
               <Field data-trace="visibility">
