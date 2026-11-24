@@ -13,8 +13,7 @@ pnpm install && pnpm dev
 ```
 
 Then rename `name` in `package.json` and `<title>` in `index.html`, and strip
-the showcase: delete the `src/showcase/` folder and the `<Showcase />` line in
-`src/App.tsx`. Keep `src/agent.ts` and its import in
+the showcase: delete the `src/showcase/` folder, the `Showcase` import and the `<Showcase />` line in `src/App.tsx`, then run `pnpm check`. Keep `src/agent.ts` and its import in
 `src/main.tsx`, `<OverlayHost />` in `src/App.tsx` (the bridge's `confirm()`
 needs it), `src/test/setup.ts`, and one agent test per interface. To restyle, edit the tokens in
 `src/styles/tokens.css`.
@@ -33,17 +32,21 @@ needs it), `src/test/setup.ts`, and one agent test per interface. To restyle, ed
 
 ## What is included
 
-Three showcase sections, one per SDK idea:
+The page is a showcase in `src/showcase/`: a hero, then three sections.
 
-1. **First component**: the authors' Toggle, with pressed state, keyboard
-   handling and `aria-pressed` built in.
-2. **Settings form**: Field, Input, Select, Switch and AlertDialog, with the
-   destructive button marked `data-agent-confirm`.
-3. **Agent bridge**: `createAgent` lets an agent read and drive the page's
-   components by name, and asks you before a marked step. It is also offered to
-   WebMCP browsers, and is `window.agent` under `pnpm dev` only. "Run risky
-   agent step" presses the settings form's delete button, so remove the two
-   together.
+1. **Agent run**: a project pane, and a plan that plays `act` calls against it.
+   The agent is scripted. Nothing calls a model and no network is needed. The
+   last step touches a field marked `data-agent-confirm`, so the real confirm
+   dialog asks you first.
+2. **Built from core**: a project mark picker the SDK doesn't ship, built from
+   `@ui-sdk/core`, next to the shipped Tabs, with a right-to-left switch.
+3. **In the repo**: an excerpt of the pane's agent test, the SDK's testing
+   helpers and where this repo uses them, and how to strip the showcase.
+
+The shell stays when the showcase goes: the skip link, the System/Light/Dark
+control, `createAgent` in `src/agent.ts` (offered to WebMCP browsers, and
+`window.agent` under `pnpm dev` only) and `<OverlayHost />`, which the bridge's
+`confirm()` needs.
 
 Tooling: oxlint, Vitest with the SDK's jsdom setup, and the authors' skill in
 `.claude/skills/ui-sdk/` (pinned in `skills-lock.json`), the `interface-taste`
