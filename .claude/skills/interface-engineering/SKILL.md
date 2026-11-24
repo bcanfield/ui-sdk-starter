@@ -17,9 +17,9 @@ Tokens are declared once in `src/styles/tokens.css` on `:root` as `light-dark(li
 
 ## Base layer
 
-Already in `src/index.css`: `@layer ui-sdk;` first, `scrollbar-gutter: stable`, `font-synthesis: none`, smoothing, `:focus-visible` (2px `--ui-ring`, offset 2px), `::selection`, skip link. Don't repeat them in components.
+Already in `src/index.css`: `@layer ui-sdk;` first, `scrollbar-gutter: stable`, `font-synthesis: none`, smoothing, `::selection`, skip link. The focus ring comes from ui-sdk's `web.css` (4px `--ui-ring`, offset 0), is themed only through `--ui-ring`, and is never redrawn in app CSS. Don't repeat them in components.
 
-- A skip link to `#content`, hidden with `translateY(-120%)` and slid in on `:focus`. The target gets `scroll-margin-top`.
+- A skip link to `#content`, hidden with `translate: 0 -120%` and slid in on `:focus`. The target gets `scroll-margin-top`.
 - Inner scroll areas get thin scrollbars: `scrollbar-width: thin` with a thumb of `muted` at ~25% that rises to ~45% on hover, transparent track. For custom scrollbars use ui-sdk **Scroll Area**; for plain overflow containers, set those two scrollbar properties on the container itself.
 - When a component suppresses the default outline for a custom indicator, it restores one on `:focus-visible`.
 
@@ -27,7 +27,7 @@ Already in `src/index.css`: `@layer ui-sdk;` first, `scrollbar-gutter: stable`, 
 
 The page holds its final shape before data arrives:
 
-- Server-render **skeletons with the real row height and count**, and replace them in place. Keep them visible until the data that decides the layout is known; hiding groups early collapses the page.
+- Reserve layout space for loading states: render **skeletons with the real row height and count**, and replace them in place. Keep them visible until the data that decides the layout is known; hiding groups early collapses the page.
 - Give regions that fill later a `min-height` equal to their filled size: titles (`line-height × font-size`), one-line ledes (`1.6em`), lists (`rows × row height` via a custom property such as `--row: 3.35rem`), button rows.
 - Render a fixed number of slots (for example, every spec field) with `—` placeholders, so detection cannot grow or shrink the row.
 - Hide not-yet-ready content with `visibility: hidden` (keeps its box), and use `display: none` only for content whose space should be released.
@@ -39,7 +39,7 @@ The page holds its final shape before data arrives:
 - Every flex/grid child that holds text gets `min-width: 0`; text that must stay on one line gets `overflow: hidden; text-overflow: ellipsis; white-space: nowrap`.
 - Grid tracks for flexible text are `minmax(0, 1fr)`; numeric columns get fixed widths so values align down the list, with `tabular-nums` and right alignment.
 - Shrink-to-content controls use `width: max-content; max-width: 100%`. Size ui-sdk popups with `--anchor-width` and `--available-height`, e.g. `max-height: min(22rem, var(--available-height))`.
-- Explain non-obvious box-model choices in a comment (for example, `box-sizing: content-box` so `max-content` measures the label and padding is added on top).
+- Comment a non-obvious box-model choice only when a reader would otherwise remove or break it, in one line (for example, `box-sizing: content-box` so `max-content` measures the label and padding is added on top).
 
 ## Responsive
 
@@ -65,7 +65,7 @@ Express component state as attributes and style from them, so the visual and the
 
 - Style from ui-sdk's state attributes (`data-pressed`, `data-checked`, `data-open`, `data-highlighted`, `data-disabled`, `data-side`, `data-invalid`…) and `aria-current="page"` for nav. Your own `data-*` (e.g. `data-level`) is fine for values ui-sdk doesn't model. Never use inline styles for state.
 - Swap per-state colour by setting one local custom property (`--ctl-color`) in each state rule and reading it everywhere inside the component.
-- Data hooks (`[data-card-body]`, `[data-metric]`) select parts for alternate layouts (card vs list mode), keeping class names for styling.
+- Data hooks (for example `[data-part="body"]`) select parts of a component for alternate layouts, keeping class names for styling.
 
 ## Accessibility
 

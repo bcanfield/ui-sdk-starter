@@ -1,8 +1,14 @@
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { expect, test } from "vitest"
+import { afterEach, expect, test } from "vitest"
 import { agent } from "./agent.ts"
 import { App } from "./App.tsx"
+import { colorScheme } from "./theme/color-scheme.ts"
+
+afterEach(() => {
+  colorScheme.set("system")
+  localStorage.clear()
+})
 
 test("shows the page heading and one captioned section per SDK concept", () => {
   render(<App />)
@@ -107,4 +113,22 @@ test("an agent finds every control on the page by a name of its own", async () =
     "aria-pressed",
     "true"
   )
+})
+
+test("choosing a theme sets data-color-scheme on <html> and saves it", async () => {
+  const user = userEvent.setup()
+  render(<App />)
+  await user.click(screen.getByRole("radio", { name: "Dark" }))
+  expect(document.documentElement).toHaveAttribute("data-color-scheme", "dark")
+  expect(localStorage.getItem("color-scheme")).toContain("dark")
+  const result = await agent.act({ steps: [{ ref: "Theme", action: "setValue", args: ["light"] }] })
+  expect(result.ok, result.error?.message).toBe(true)
+  expect(document.documentElement).toHaveAttribute("data-color-scheme", "light")
+})
+
+test("the skip link jumps to the main content", () => {
+  render(<App />)
+  const link = screen.getByRole("link", { name: "Skip to content" })
+  expect(link).toHaveAttribute("href", "#content")
+  expect(document.getElementById("content")).toBe(screen.getByRole("main"))
 })

@@ -36,7 +36,7 @@ Derive every tint from a token with `color-mix(in srgb, <token> N%, transparent)
 | Badge / chip / callout | border at 20-30%, background at 5-12%, text at full strength |
 | Card hover border | accent mixed 28-38% into `edge` |
 | Field focus border | `--ui-ring-border` (solid `--accent`). A 40-45% mix fails 3:1. |
-| Focus ring | 2px solid `--ui-ring` (= `--accent`), offset 2px, set once in `src/index.css`. A 75% mix fails 3:1 in light. |
+| Focus ring | Comes from ui-sdk's `web.css` (4px `--ui-ring`, offset 0) and is themed only through `--ui-ring` (= `--accent`). Never redrawn in app CSS. A 75% mix fails 3:1 in light. |
 | Selection | accent at 30% |
 | Danger menu item hover | danger at ~12% background, danger text |
 | Ambient glow | one radial gradient of accent at ~10%, behind the top of the page, fading by 70% |
@@ -55,8 +55,8 @@ Default to **Geist Sans** (sans), **Geist Mono** (mono) and **Geist Pixel** (dis
 
 Sizes and rhythm:
 
-- Chrome uses small fixed pixel sizes: 10-11px for eyebrow labels and group headers, 12-13px for controls, metadata and nav, 15px for a summary sentence, named `--size-eyebrow` 10px, `--size-meta` 11px, `--size-control` 13px (`--ui-font-size` is 0.8125rem = 13px) and `--size-summary` 15px. Prose uses rem: body ~0.875-1.05rem.
-- **Eyebrow labels**: mono, 10-11px, uppercase, letter-spacing 0.08-0.16em, `muted`. They head spec values, list groups and hero kickers.
+- Chrome uses small fixed pixel sizes through the role tokens: `--size-eyebrow` (eyebrow labels, group headers), `--size-meta`, `--size-control` (controls and nav; ui-sdk's `--ui-font-size` is the same size) and `--size-summary` (a summary sentence). Prose uses rem.
+- **Eyebrow labels**: mono, `--size-eyebrow`, uppercase, letter-spacing 0.08-0.16em, `muted`. They head spec values, list groups and hero kickers.
 - Headings and names: letter-spacing about -0.02em, weight 500-600, tight line-height (1.05 for display titles, 1.25 for section heads).
 - Hero titles scale fluidly with `clamp()` between a mobile and desktop size.
 - Prose: line-height 1.6-1.7, measure capped around 34rem for ledes and 3xl (~48rem) for articles. `strong` lifts to `primary`; list markers sit in `muted`.
@@ -73,14 +73,14 @@ Sizes and rhythm:
 
 ## Shape and depth
 
-- Radius scale: `--ui-radius` (0.5rem) drives every ui-sdk control. Use `--radius-sm` 4px for code, `--radius-md` 6px for small inline controls, `--radius-lg` 12px for menus, popovers and cards, and 999px for pills and meters. With `--ui-radius` above 0, switch and slider thumbs are fully round (ui-sdk behaviour).
-- Flat by default. Shadows appear only on **floating layers** (tooltips, menus, popovers, drawers). A floating layer is the card surface at 92-95% opacity with `backdrop-filter: blur(12-16px)`, a 1px edge, and a soft wide shadow. Apply it to ui-sdk popup slots (`popover-content`, `menu-content`, `select-content`, `tooltip-content`, `hover-card-content`), and measure painted contrast over real content (ui-sdk testing.md › Contrast).
+- Radius scale: `--ui-radius` drives every ui-sdk control. Use `--radius-sm` for code, `--radius-md` for small inline controls, `--radius-lg` for menus, popovers and cards, and 999px for pills and meters. With `--ui-radius` above 0, switch and slider thumbs are fully round (ui-sdk behaviour).
+- Flat by default. Shadows appear only on **floating layers** (tooltips, menus, popovers, drawers). A floating layer is the card surface made translucent (`--surface-floating`) with `backdrop-filter: blur(var(--blur-floating))`, the 1px `--ui-border` edge, and the soft wide `--ui-shadow`. `src/index.css` applies it to the ui-sdk popup slots; add new popup slots to that list. Measure painted contrast over real content (ui-sdk testing.md › Contrast).
 - Icons are small (12-18px), `currentColor`, `muted` at rest, brightening to `primary` or accent on hover.
 
 ## Page patterns
 
 - **Hero**: centred stack of eyebrow kicker, display title, short lede in `secondary`, then a wrap of mono pill links. A faint accent glow sits behind it.
-- **Pills**: a pill that navigates is an `<a>`. A pill that toggles a filter is ui-sdk **Toggle** (styled by `[data-pressed]`), and a set of them is a **Toolbar** or **Toggle** group, never a `<button aria-pressed>` you write yourself. Mono 12px, 1px edge, card surface, fully rounded, ~32px tall; hover lifts text to `primary`, tints the border toward accent and steps the surface.
+- **Pills**: a pill that navigates is an `<a>`. A pill that toggles a filter is ui-sdk **Toggle** (styled by `[data-pressed]`), and a set of them is a **Toolbar** or **Toggle** group, never a `<button aria-pressed>` you write yourself. Mono, `--size-control`, 1px edge, card surface, fully rounded, as tall as ui-sdk controls; hover lifts text to `primary`, tints the border toward accent and steps the surface.
 - **Section heads**: title (with a small `muted` icon) on the left, a mono one-line subtitle on the right, baseline-aligned, a 1px edge underneath.
 - **Callouts**: tinted box (status colour at 30% border, 5% background) led by a short uppercase tag in the display face.
 - **Inline-editable values**: ui-sdk **Select** with its `select-trigger` restyled: transparent border and background at rest, border plus `--surface-hover` on hover and `[data-open]`. Keep the web.css chevron or swap it through `--ui-icon-chevron`.
@@ -88,7 +88,7 @@ Sizes and rhythm:
 ## Microcopy
 
 - Summaries are one plain sentence with the numbers lifted to `primary`: "**12** of **80** items fit comfortably".
-- Turn numeric thresholds into words people feel (Instant, Smooth, Comfortable, Slow, Painful) and colour them by status.
+- Turn numeric thresholds into plain words people feel (for example Low, Normal, High) and colour them by status only when the value is an exception.
 - Tooltips explain jargon in one line: "TERM — what it is. What higher means." Use ui-sdk **Tooltip**.
 - Say when a figure is an estimate, and say why, in a visible callout.
 - Empty states: a short muted title ("No items found") plus one line naming the fix ("Try adjusting your search or filters"); when there is a direct fix, make it an inline button.
