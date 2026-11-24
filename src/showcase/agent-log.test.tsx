@@ -112,7 +112,8 @@ test("Refuse at undo's gate leaves Visibility public and reports it as not put b
   await undoAgent(user, "Refuse")
 
   expect(pane.visibility()).toHaveTextContent("Public")
-  expect(undoResult()).toHaveTextContent(/^Couldn't put back: Visibility \(c\d+\) value$/)
+  expect(undoResult()).toHaveTextContent(/^Couldn't put back: Visibility$/)
+  expect(undoResult()).toHaveAttribute("title", expect.stringMatching(/^Visibility \(c\d+\) value$/))
   expect(pane.replicas()).toHaveValue("2")
   expect(pane.digest()).not.toBeChecked()
   expect(pane.name()).toHaveValue("Atlas")

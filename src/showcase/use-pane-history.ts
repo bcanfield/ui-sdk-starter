@@ -6,6 +6,8 @@ import { itemLabel, PANE_TABS } from "./pane-items.ts"
 type LogEntry = { id: string; source: "agent" | "you"; text: string; reverted: boolean }
 type Missed = { ref: string; key: string }
 
+type UndoResult = { text: string; title?: string }
+
 const UNDONE = "Agent's changes undone. Yours stayed."
 
 function valueText(entry: HistoryEntry) {
@@ -24,11 +26,11 @@ function toLogEntry(entry: HistoryEntry): LogEntry {
 }
 
 function describeMissed(missed: Missed[], entries: readonly HistoryEntry[]) {
-  const named = missed.map((m) => {
-    const label = entries.find((entry) => entry.ref === m.ref)?.label
-    return label ? `${label} (${m.ref}) ${m.key}` : `${m.ref} ${m.key}`
-  })
-  return `Couldn't put back: ${named.join(", ")}`
+  const labelOf = (m: Missed) =>
+    entries.find((entry) => entry.ref === m.ref)?.label ?? "a control"
+  const labels = [...new Set(missed.map(labelOf))]
+  const detail = missed.map((m) => `${labelOf(m)} (${m.ref}) ${m.key}`)
+  return { text: `Couldn't put back: ${labels.join(", ")}`, title: detail.join(", ") }
 }
 
 // Tab switches are the bridge reaching behind a closed tab, not edits a person made or the plan asked for.
@@ -38,7 +40,7 @@ function usePaneHistory(paneRoot: RefObject<HTMLElement | null>, paneKey: number
   const history = useRef<ReturnType<typeof createHistory> | null>(null)
   const [entries, setEntries] = useState<readonly HistoryEntry[]>([])
   const [undoing, setUndoing] = useState(false)
-  const [result, setResult] = useState("")
+  const [result, setResult] = useState<UndoResult>({ text: "" })
 
   useEffect(() => {
     const recorder = createHistory(agent, {
@@ -58,18 +60,18 @@ function usePaneHistory(paneRoot: RefObject<HTMLElement | null>, paneKey: number
     if (paneKey === firstKey.current) return
     history.current?.clear()
     setEntries([])
-    setResult("")
+    setResult({ text: "" })
   }, [paneKey])
 
   async function undoAgent() {
     const recorder = history.current
     if (!recorder) return
     setUndoing(true)
-    setResult("")
+    setResult({ text: "" })
     const missed = await recorder.undoSource("agent")
     if (history.current !== recorder) return
     setUndoing(false)
-    setResult(missed.length ? describeMissed(missed, recorder.entries()) : UNDONE)
+    setResult(missed.length ? describeMissed(missed, recorder.entries()) : { text: UNDONE })
   }
 
   const shown = entries.filter((entry) => !isTabSwitch(entry))

@@ -1,11 +1,17 @@
 import { Button } from "@ui-sdk/react/button"
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type RefObject } from "react"
+import { OwnStep } from "./own-step.tsx"
 import { callOf, plan } from "./plan.ts"
 import type { usePaneHistory } from "./use-pane-history.ts"
+import { usePaneSnapshot } from "./use-pane-snapshot.ts"
 import type { usePlanPlayer } from "./use-plan-player.ts"
 
-const TABS = ["plan", "log"] as const
+const TABS = ["plan", "snapshot", "log"] as const
+
+type WebMcpHost = Document & { modelContext?: { registerTool?: unknown } }
+const webMcpOffered = () =>
+  typeof (document as WebMcpHost).modelContext?.registerTool === "function"
 type ConsoleTab = (typeof TABS)[number]
 
 function tabFromUrl(): ConsoleTab {
@@ -33,17 +39,25 @@ function useConsoleTab() {
 function AgentConsole({
   player,
   history,
+  paneRoot,
 }: {
   player: ReturnType<typeof usePlanPlayer>
   history: ReturnType<typeof usePaneHistory>
+  paneRoot: RefObject<HTMLElement | null>
 }) {
   const [tab, selectTab] = useConsoleTab()
+  const [offered] = useState(webMcpOffered)
+  const snapshot = usePaneSnapshot(paneRoot, player.paneKey)
   const { rows, running, finished, result } = player
 
   return (
     <div className="console" data-agent-hidden>
       <div className="console-head">
         <span className="eyebrow">agent console</span>
+        <span className="webmcp-badge" data-offered={offered}>
+          <span aria-hidden="true">{offered ? "●" : "○"}</span>
+          {offered ? "WebMCP: tools offered to this browser's agent" : "WebMCP: not detected"}
+        </span>
         <div className="player">
           <Button onClick={player.run} disabled={running || finished}>
             Run
@@ -71,6 +85,7 @@ function AgentConsole({
       <Tabs value={tab} onValueChange={(value) => selectTab(String(value))}>
         <TabsList aria-label="Console">
           <TabsTab value="plan">Plan</TabsTab>
+          <TabsTab value="snapshot">Snapshot</TabsTab>
           <TabsTab value="log">Log</TabsTab>
         </TabsList>
         <TabsPanel value="plan">
@@ -100,6 +115,13 @@ function AgentConsole({
           <output className="run-result" aria-label="Run result">
             {result}
           </output>
+          <OwnStep disabled={running} />
+        </TabsPanel>
+        <TabsPanel value="snapshot">
+          <p className="console-task">What the agent sees on the pane, live.</p>
+          <pre className="snapshot-block" aria-label="Agent snapshot">
+            {JSON.stringify(snapshot, null, 2)}
+          </pre>
         </TabsPanel>
         <TabsPanel value="log">
           <p className="console-task">
@@ -126,8 +148,8 @@ function AgentConsole({
             >
               Undo agent
             </Button>
-            <output className="run-result" aria-label="Undo result">
-              {history.result}
+            <output className="run-result" aria-label="Undo result" title={history.result.title}>
+              {history.result.text}
             </output>
           </div>
         </TabsPanel>
