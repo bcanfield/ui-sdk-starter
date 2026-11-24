@@ -37,6 +37,7 @@
   --duration-fast: 150ms;
   --duration-popup: 180ms;
   --duration-panel: 240ms;
+  --duration-enter: 250ms;
 
   --ui-background: var(--surface);
   --ui-foreground: var(--fg-primary);
