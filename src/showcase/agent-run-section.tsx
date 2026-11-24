@@ -21,7 +21,7 @@ function AgentRunSection({ pacing = defaultPacing }: { pacing?: Pacing }) {
     <Section
       id="agent-run"
       title="Agent run"
-      caption="Apollo's settings are real ui-sdk controls. A scripted agent and a person drive the same ones through the bridge."
+      caption="scripted · no model · the real bridge"
     >
       {!wide && <NowPlaying player={player} />}
       <div className="run-grid" ref={grid}>

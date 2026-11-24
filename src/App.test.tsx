@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { expect, test } from "vitest"
 import { App } from "./App.tsx"
 
@@ -11,10 +11,12 @@ test("a skip link leads to the main landmark", () => {
   expect(screen.getByRole("main")).toHaveAttribute("id", "content")
 })
 
-test("the color scheme control is present", () => {
+test("the top bar holds the brand mark and the color scheme control", () => {
   render(<App />)
-  expect(screen.getByText("Theme")).toBeInTheDocument()
-  expect(screen.getByRole("radio", { name: "Dark" })).toBeInTheDocument()
+  const bar = screen.getByRole("banner")
+  expect(bar).toHaveTextContent(/^ui-sdk/)
+  expect(within(bar).getByText("Theme")).toBeInTheDocument()
+  expect(within(bar).getByRole("radio", { name: "Dark" })).toBeInTheDocument()
 })
 
 test("the page has at most one h1", () => {
