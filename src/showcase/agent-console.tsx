@@ -2,9 +2,10 @@ import { Button } from "@ui-sdk/react/button"
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
 import { useEffect, useState } from "react"
 import { callOf, plan } from "./plan.ts"
+import type { usePaneHistory } from "./use-pane-history.ts"
 import type { usePlanPlayer } from "./use-plan-player.ts"
 
-const TABS = ["plan"] as const
+const TABS = ["plan", "log"] as const
 type ConsoleTab = (typeof TABS)[number]
 
 function tabFromUrl(): ConsoleTab {
@@ -29,7 +30,13 @@ function useConsoleTab() {
   return [tab, select] as const
 }
 
-function AgentConsole({ player }: { player: ReturnType<typeof usePlanPlayer> }) {
+function AgentConsole({
+  player,
+  history,
+}: {
+  player: ReturnType<typeof usePlanPlayer>
+  history: ReturnType<typeof usePaneHistory>
+}) {
   const [tab, selectTab] = useConsoleTab()
   const { rows, running, finished, result } = player
 
@@ -64,6 +71,7 @@ function AgentConsole({ player }: { player: ReturnType<typeof usePlanPlayer> }) 
       <Tabs value={tab} onValueChange={(value) => selectTab(String(value))}>
         <TabsList aria-label="Console">
           <TabsTab value="plan">Plan</TabsTab>
+          <TabsTab value="log">Log</TabsTab>
         </TabsList>
         <TabsPanel value="plan">
           <p className="console-task">
@@ -92,6 +100,36 @@ function AgentConsole({ player }: { player: ReturnType<typeof usePlanPlayer> }) 
           <output className="run-result" aria-label="Run result">
             {result}
           </output>
+        </TabsPanel>
+        <TabsPanel value="log">
+          <p className="console-task">
+            Change anything during or after the run, then undo the agent. Your changes
+            stay. Undo may ask you again, and it leaves the Deploy token alone.
+          </p>
+          <ol className="log" aria-label="Log">
+            {history.log.map((entry) => (
+              <li key={entry.id} className="log-entry" data-reverted={entry.reverted || undefined}>
+                <span className="source-tag" data-source={entry.source}>
+                  {entry.source}
+                </span>
+                <span className="log-text">{entry.text}</span>
+              </li>
+            ))}
+          </ol>
+          {history.log.length === 0 && (
+            <p className="log-empty">No changes yet. Run the plan or edit a field.</p>
+          )}
+          <div className="log-actions">
+            <Button
+              onClick={history.undoAgent}
+              disabled={player.running || !history.canUndo}
+            >
+              Undo agent
+            </Button>
+            <output className="run-result" aria-label="Undo result">
+              {history.result}
+            </output>
+          </div>
         </TabsPanel>
       </Tabs>
     </div>

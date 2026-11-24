@@ -2,11 +2,13 @@ import { useRef } from "react"
 import { Section } from "../sections/section.tsx"
 import { AgentConsole } from "./agent-console.tsx"
 import { ProjectPane } from "./project-pane.tsx"
+import { usePaneHistory } from "./use-pane-history.ts"
 import { defaultPacing, usePlanPlayer, type Pacing } from "./use-plan-player.ts"
 
 function AgentRunSection({ pacing = defaultPacing }: { pacing?: Pacing }) {
   const grid = useRef<HTMLDivElement>(null)
   const player = usePlanPlayer(pacing, grid)
+  const history = usePaneHistory(grid, player.paneKey)
   return (
     <Section
       id="agent-run"
@@ -15,7 +17,7 @@ function AgentRunSection({ pacing = defaultPacing }: { pacing?: Pacing }) {
     >
       <div className="run-grid" ref={grid}>
         <ProjectPane key={player.paneKey} />
-        <AgentConsole player={player} />
+        <AgentConsole player={player} history={history} />
       </div>
     </Section>
   )

@@ -21,12 +21,13 @@ import {
 } from "@ui-sdk/react/select"
 import { Switch, SwitchThumb } from "@ui-sdk/react/switch"
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
+import { PANE_TABS, regions, visibilities } from "./pane-items.ts"
 
 function ProjectPane() {
   return (
     <div className="pane" data-pane>
       <Tabs defaultValue="general">
-        <TabsList aria-label="Project settings">
+        <TabsList aria-label={PANE_TABS}>
           <TabsTab value="general">General</TabsTab>
           <TabsTab value="notifications">Notifications</TabsTab>
         </TabsList>
@@ -44,9 +45,11 @@ function ProjectPane() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="virginia">Virginia</SelectItem>
-                  <SelectItem value="frankfurt">Frankfurt</SelectItem>
-                  <SelectItem value="tokyo">Tokyo</SelectItem>
+                  {regions.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
@@ -68,9 +71,11 @@ function ProjectPane() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="private">Private</SelectItem>
-                    <SelectItem value="internal">Internal</SelectItem>
-                    <SelectItem value="public">Public</SelectItem>
+                    {visibilities.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </Field>
