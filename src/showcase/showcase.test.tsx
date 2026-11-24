@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { expect, test } from "vitest"
 import { agent } from "../agent.ts"
 import { App } from "../App.tsx"
+import pkg from "../../package.json"
 
 const SENTENCE = "Changes who can see Apollo"
 const setVisibility = (value: string, signal?: AbortSignal) =>
@@ -11,13 +12,48 @@ const setVisibility = (value: string, signal?: AbortSignal) =>
     { signal }
   )
 
-test("shows the page heading and a captioned Agent run section", () => {
+test("the hero holds the page's only h1", () => {
   render(<App />)
   expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1)
-  expect(
-    screen.getByRole("heading", { level: 1, name: "UI SDK Hello World" })
-  ).toBeInTheDocument()
-  expect(screen.getByRole("region", { name: "Agent run" })).toHaveAccessibleDescription()
+  expect(screen.getByRole("heading", { level: 1, name: "Built for agents" })).toBeInTheDocument()
+})
+
+test("the eyebrow names the @ui-sdk/react version pinned in package.json", () => {
+  render(<App />)
+  const pinned = pkg.dependencies["@ui-sdk/react"]
+  expect(pinned).toMatch(/^\d+\.\d+\.\d+/)
+  expect(screen.getByText(`ui-sdk · ${pinned}`)).toBeInTheDocument()
+})
+
+test("every in-page pill leads to a section on the page", () => {
+  const { container } = render(<App />)
+  const pills = within(screen.getByRole("navigation", { name: "Sections" })).getAllByRole("link")
+  const inPage = pills.map((pill) => pill.getAttribute("href")!).filter((href) => href.startsWith("#"))
+  expect(inPage).toEqual(["#agent-run", "#core", "#repo"])
+  for (const href of inPage) {
+    expect(container.querySelector(`section${href}`), href).not.toBeNull()
+  }
+})
+
+test("each section is a named region with a description", () => {
+  render(<App />)
+  const descriptions = ["Agent run", "Built from core", "In the repo"].map((name) => {
+    const region = screen.getByRole("region", { name })
+    expect(region).toHaveAccessibleDescription()
+    return region
+  })
+  expect(descriptions[0]).toHaveAccessibleDescription("scripted · no model · the real bridge")
+})
+
+test("the footer lists the installed @ui-sdk packages and the docs", () => {
+  render(<App />)
+  // A footer inside main is not a contentinfo landmark in browsers, so find it by its text.
+  const footer = screen.getByText(/^@ui-sdk\/react/).closest("footer")!
+  expect(footer).toHaveTextContent(`@ui-sdk/react ${pkg.dependencies["@ui-sdk/react"]}`)
+  expect(footer).toHaveTextContent(`@ui-sdk/core ${pkg.dependencies["@ui-sdk/core"]}`)
+  for (const name of ["docs ↗", "source ↗", "ui-sdk.dev/web.md ↗", "agent tools ↗"]) {
+    expect(within(footer).getByRole("link", { name })).toHaveAttribute("href", expect.stringMatching(/^https:/))
+  }
 })
 
 test("an agent's risky step needs a person: refused on no, runs on yes", async () => {
