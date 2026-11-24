@@ -17,7 +17,87 @@
   "rules": {
     "react/rules-of-hooks": "error",
     "react/unsupported-syntax": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "@ui-sdk/react",
+            "message": "Import each component from its entry, like @ui-sdk/react/button."
+          }
+        ],
+        "patterns": [
+          {
+            "group": [
+              "@ui-sdk/*/internal",
+              "@ui-sdk/*/internal/*"
+            ],
+            "message": "Never import ui-sdk internals."
+          }
+        ]
+      }
+    ],
+    "react/no-array-index-key": "error",
+    "react/forbid-elements": [
+      "error",
+      {
+        "forbid": [
+          {
+            "element": "button",
+            "message": "Use Button from @ui-sdk/react/button."
+          },
+          {
+            "element": "input",
+            "message": "Use Input (or another ui-sdk control) inside a Field."
+          },
+          {
+            "element": "select",
+            "message": "Use Select from @ui-sdk/react/select."
+          },
+          {
+            "element": "textarea",
+            "message": "Use Textarea from @ui-sdk/react/textarea."
+          },
+          {
+            "element": "label",
+            "message": "Use FieldLabel or Label."
+          },
+          {
+            "element": "details",
+            "message": "Use Collapsible or Accordion."
+          }
+        ]
+      }
+    ],
+    "react/forbid-dom-props": [
+      "error",
+      {
+        "forbid": [
+          {
+            "propName": "role",
+            "disallowedValues": [
+              "listbox",
+              "menu",
+              "menubar",
+              "dialog",
+              "alertdialog",
+              "tablist",
+              "tab",
+              "switch",
+              "slider",
+              "radiogroup",
+              "toolbar",
+              "tree",
+              "tooltip",
+              "separator",
+              "combobox"
+            ],
+            "message": "ui-sdk ships this role as a component: see .claude/skills/ui-sdk/references/build-interface.md."
+          }
+        ]
+      }
+    ]
   },
   "overrides": [
     {

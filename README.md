@@ -15,7 +15,8 @@ pnpm install && pnpm dev
 Then rename `name` in `package.json` and `<title>` in `index.html`, and replace
 the sections in `src/sections/`. Keep `src/agent.ts` and its import in
 `src/main.tsx`, `<OverlayHost />` in `src/App.tsx` (the bridge's `confirm()`
-needs it), `src/test/setup.ts`, and one agent test per interface.
+needs it), `src/test/setup.ts`, and one agent test per interface. To restyle, edit the tokens in
+`src/styles/tokens.css`.
 
 ## Commands
 
@@ -44,8 +45,11 @@ Three showcase sections, one per SDK idea:
    together.
 
 Tooling: oxlint, Vitest with the SDK's jsdom setup, and the authors' skill in
-`.claude/skills/ui-sdk/` (pinned in `skills-lock.json`). `AGENTS.md` holds the
-rules for coding agents.
+`.claude/skills/ui-sdk/` (pinned in `skills-lock.json`), the `interface-taste`
+and `interface-engineering` skills in `.claude/skills/` (adapted from
+design-taste, not in `skills-lock.json`), design tokens in
+`src/styles/tokens.css`, a System/Light/Dark theme control, and a style-guard
+test. `AGENTS.md` holds the rules for coding agents.
 
 ## Docs
 
