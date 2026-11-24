@@ -88,12 +88,15 @@ test("the trace lands on each step's target, on a closed panel's tab first, and 
     "name",
     "region",
     "replicas",
+    "mark",
     "tab:notifications",
     "digest",
     "tab:general",
     "visibility",
   ])
   expect(agent.snapshot().find((entry) => entry.label === "Visibility")?.value).toBe("public")
+  const mark = container.querySelector('[data-trace="mark"]')
+  expect(mark).toHaveAttribute("data-slot", "project-mark-trigger")
 })
 
 test("the step at the gate is marked waiting with the trace on its control, and Reset takes the trace away", async () => {
@@ -126,11 +129,11 @@ test("below 56rem the strip holds the only Run and Step, and narrates the step w
   const strip = screen.getByRole("group", { name: "Now playing" })
   expect(playButtons()).toHaveLength(2)
   for (const button of playButtons()) expect(strip).toContainElement(button)
-  expect(strip).toHaveTextContent("Move Apollo to Frankfurt, scale it and make it public")
+  expect(strip).toHaveTextContent("Move Apollo to Frankfurt, scale it, give it a mark and make it public")
 
   await user.click(within(strip).getByRole("button", { name: "Run" }))
   await screen.findByRole("alertdialog", { name: "Let the agent continue?" })
-  expect(strip).toHaveTextContent("8/8")
+  expect(strip).toHaveTextContent("9/9")
   expect(strip).toHaveTextContent("Make Apollo public")
   expect(strip).toHaveTextContent("needs you")
 })
@@ -143,7 +146,7 @@ test("a refused step reads refused in the strip", async () => {
     await user.click(within(strip).getByRole("button", { name: "Step" }))
     await waitFor(() => expect(within(strip).getByRole("button", { name: "Step" })).toBeEnabled())
   }
-  expect(strip).toHaveTextContent("4/8")
+  expect(strip).toHaveTextContent("4/9")
   expect(strip).toHaveTextContent("Scale to 12 replicas")
   expect(strip).toHaveTextContent("refused")
 })

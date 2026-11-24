@@ -26,6 +26,7 @@ const pane = {
   region: () => screen.getByRole("combobox", { name: "Region" }),
   replicas: () => screen.getByRole("textbox", { name: "Replicas" }),
   digest: () => screen.getByRole("switch", { name: "Weekly digest", hidden: true }),
+  mark: () => within(screen.getByRole("group", { name: "Project mark" })).getByRole("button"),
   visibility: () => screen.getByRole("combobox", { name: "Visibility" }),
   token: () => screen.getByLabelText("Deploy token", { selector: "input" }),
 }
@@ -83,6 +84,7 @@ test("the log reads as prose with item labels, a source tag per entry, and no ta
     "agentProject name → Apollo API",
     "agentRegion → Frankfurt",
     "agentReplicas → 10",
+    "agentProject mark → Rocket",
     "agentWeekly digest → on",
     "agentVisibility → Public",
     "youProject name → Atlas",
@@ -102,6 +104,7 @@ test("undo agent restores the agent's controls and keeps the person's two edits"
   expect(pane.region()).toHaveTextContent("Tokyo")
   expect(pane.replicas()).toHaveValue("2")
   expect(pane.digest()).not.toBeChecked()
+  expect(pane.mark()).toHaveTextContent("Flag")
   expect(pane.visibility()).toHaveTextContent("Private")
 })
 
@@ -116,6 +119,7 @@ test("Refuse at undo's gate leaves Visibility public and reports it as not put b
   expect(undoResult()).toHaveAttribute("title", expect.stringMatching(/^Visibility \(c\d+\) value$/))
   expect(pane.replicas()).toHaveValue("2")
   expect(pane.digest()).not.toBeChecked()
+  expect(pane.mark()).toHaveTextContent("Flag")
   expect(pane.name()).toHaveValue("Atlas")
 })
 
@@ -162,6 +166,7 @@ test("run, person edit, undo agent, Reset: five times with nothing left unrestor
     expect(undoResult().textContent, `round ${round}`).not.toMatch(/Couldn't put back/)
     expect(pane.replicas(), `round ${round}`).toHaveValue("2")
     expect(pane.digest(), `round ${round}`).not.toBeChecked()
+    expect(pane.mark(), `round ${round}`).toHaveTextContent("Flag")
     expect(pane.visibility(), `round ${round}`).toHaveTextContent("Private")
     expect(pane.name(), `round ${round}`).toHaveValue("Atlas")
     expect(pane.region(), `round ${round}`).toHaveTextContent("Tokyo")

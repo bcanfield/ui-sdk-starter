@@ -1,3 +1,5 @@
+import { MARKS } from "./project-mark/marks.ts"
+
 const regions = [
   { value: "virginia", label: "Virginia" },
   { value: "frankfurt", label: "Frankfurt" },
@@ -15,6 +17,7 @@ const PANE_TABS = "Project settings"
 const itemsByControl: Record<string, { value: string; label: string }[]> = {
   Region: regions,
   Visibility: visibilities,
+  "Project mark": MARKS,
 }
 
 function itemLabel(control: string, value: unknown) {

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { expect, test } from "vitest"
 import { agent } from "../agent.ts"
@@ -26,7 +26,7 @@ test("every control in the snapshot has a name, and no two share one", () => {
     expect(entry.label, `${entry.component} ${entry.ref} has no name`).toBeTruthy()
   }
   const labels = entries.map((entry) => entry.label)
-  for (const label of ["Project name", "Region", "Replicas", "Visibility"]) {
+  for (const label of ["Project name", "Region", "Replicas", "Project mark", "Visibility"]) {
     expect(labels, `${label} is missing`).toContain(label)
   }
   expect(new Set(labels).size, "two controls share a label").toBe(labels.length)
@@ -66,6 +66,33 @@ test("Deploy token reads [redacted], even on the closed tab", async () => {
     "aria-selected",
     "true"
   )
+})
+
+const markTrigger = () =>
+  within(screen.getByRole("group", { name: "Project mark" })).getByRole("button")
+
+test("Project mark sits between Replicas and Visibility, named by its visible label", () => {
+  render(<App />)
+  const general = screen.getByRole("tabpanel", { name: "General" })
+  const order = within(general)
+    .getAllByText(/^(Replicas|Project mark|Visibility)$/, { selector: "label" })
+    .map((label) => label.textContent)
+  expect(order).toEqual(["Replicas", "Project mark", "Visibility"])
+  expect(screen.getAllByRole("group", { name: "Project mark" })).toHaveLength(1)
+})
+
+test("a person and the agent both set the project mark", async () => {
+  const user = userEvent.setup()
+  render(<App />)
+  await user.click(markTrigger())
+  await user.click(await screen.findByRole("option", { name: "Bolt" }))
+  expect(markTrigger()).toHaveTextContent("Bolt")
+
+  const result = await agent.act({
+    steps: [{ ref: "Project mark", action: "setValue", args: ["rocket"] }],
+  })
+  expect(result.ok, result.error?.message).toBe(true)
+  expect(markTrigger()).toHaveTextContent("Rocket")
 })
 
 // excerpt:start

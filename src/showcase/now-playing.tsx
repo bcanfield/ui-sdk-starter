@@ -1,5 +1,5 @@
 import { Button } from "@ui-sdk/react/button"
-import { plan } from "./plan.ts"
+import { plan, TASK } from "./plan.ts"
 import type { StepState, usePlanPlayer } from "./use-plan-player.ts"
 
 const STATUS: Record<StepState, string> = {
@@ -38,7 +38,7 @@ function NowPlaying({ player }: { player: Player }) {
         {STATUS[state]}
       </span>
       <span className="now-playing-say" data-state={state}>
-        {step ? step.say : "Move Apollo to Frankfurt, scale it and make it public"}
+        {step ? step.say : TASK}
       </span>
       <div className="now-playing-buttons">
         <PlayButtons player={player} />

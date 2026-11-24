@@ -1,5 +1,6 @@
 "use client"
 
+import { useFieldControl } from "@ui-sdk/react/field"
 import { createParts } from "@ui-sdk/react/primitive"
 import type { ComponentProps } from "react"
 import { MARKS } from "./marks.ts"
@@ -47,14 +48,19 @@ function MarkIcon({ value, ...props }: { value: string } & ComponentProps<"svg">
   )
 }
 
-type ProjectMarkProps = Omit<ProjectMarkOptions, "items"> & { "aria-label"?: string }
+type ProjectMarkProps = Omit<ProjectMarkOptions, "items"> & {
+  "aria-label"?: string
+  triggerProps?: Omit<ComponentProps<typeof Trigger>, "children"> & Record<`data-${string}`, string>
+}
 
-function ProjectMark({ "aria-label": label = "Project mark", ...options }: ProjectMarkProps) {
+function ProjectMark({ "aria-label": label, triggerProps, ...options }: ProjectMarkProps) {
+  const field = useFieldControl()
+  const named = field ? field.props({ "aria-label": label }) : { "aria-label": label ?? "Project mark" }
   return (
-    <Root aria-label={label} items={ITEMS} {...options}>
+    <Root {...named} items={ITEMS} {...options}>
       {({ value }) => (
         <>
-          <Trigger>
+          <Trigger {...triggerProps}>
             <MarkIcon value={value} />
             <span>{byValue.get(value)?.label ?? "None"}</span>
           </Trigger>

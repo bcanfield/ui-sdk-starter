@@ -11,6 +11,7 @@ const SAY = [
   "Move it to Frankfurt",
   "Scale to 12 replicas",
   "Scale to the maximum instead",
+  "Give it a mark",
   "Turn on the weekly digest",
   "Check the digest is on",
   "Make Apollo public",
@@ -40,6 +41,7 @@ const pane = {
   region: () => screen.getByRole("combobox", { name: "Region" }),
   replicas: () => screen.getByRole("textbox", { name: "Replicas" }),
   digest: () => screen.getByRole("switch", { name: "Weekly digest", hidden: true }),
+  mark: () => within(screen.getByRole("group", { name: "Project mark" })).getByRole("button"),
   visibility: () => screen.getByRole("combobox", { name: "Visibility" }),
 }
 
@@ -54,13 +56,16 @@ async function runToGate(user: ReturnType<typeof userEvent.setup>) {
   return screen.getByRole("alertdialog", { name: "Let the agent continue?" })
 }
 
-test("the plan lists eight steps, each with its literal call, all idle", () => {
+test("the plan lists nine steps, each with its literal call, all idle", () => {
   renderRun()
-  expect(rows()).toHaveLength(8)
-  expect(states()).toEqual(Array(8).fill("idle"))
+  expect(rows()).toHaveLength(9)
+  expect(states()).toEqual(Array(9).fill("idle"))
   expect(row("Read the page")).toHaveTextContent("query({ closed: true })")
   expect(row("Move it to Frankfurt")).toHaveTextContent(
     'act({"steps":[{"ref":"Region","action":"setValue","args":["frankfurt"]}]})'
+  )
+  expect(row("Give it a mark")).toHaveTextContent(
+    'act({"steps":[{"ref":"Project mark","action":"setValue","args":["rocket"]}]})'
   )
   expect(row("Make Apollo public")).toHaveTextContent('"args":["public"]')
 })
@@ -70,7 +75,7 @@ test("Step reads the page and narrates what the query returned", async () => {
   await press(user, "Step")
   await waitFor(() => expect(stateOf("Read the page")).toBe("done"))
   expect(row("Read the page")).toHaveTextContent(
-    "Read 7 controls. Deploy token is redacted."
+    "Read 8 controls. Deploy token is redacted."
   )
   expect(stateOf("Rename the project")).toBe("idle")
 })
@@ -91,16 +96,19 @@ test("a full run with Allow: every step's state and the final values", async () 
     "done",
     "done",
     "done",
+    "done",
   ])
   expect(row("Rename the project")).toHaveTextContent('Project name value → "Apollo API"')
+  expect(row("Give it a mark")).toHaveTextContent('Project mark value → "rocket"')
   expect(row("Make Apollo public")).toHaveTextContent('Visibility value → "public"')
   expect(pane.name()).toHaveValue("Apollo API")
   expect(pane.region()).toHaveTextContent("Frankfurt")
   expect(pane.replicas()).toHaveValue("10")
   expect(pane.digest()).toBeChecked()
+  expect(pane.mark()).toHaveTextContent("Rocket")
   expect(pane.visibility()).toHaveTextContent("Public")
   expect(screen.getByRole("status", { name: "Run result" })).toHaveTextContent(
-    "7 steps done, 1 refused"
+    "8 steps done, 1 refused"
   )
 })
 
@@ -134,6 +142,7 @@ test("Refuse at the gate: earlier values stay applied, and the console says so",
   expect(pane.region()).toHaveTextContent("Frankfurt")
   expect(pane.replicas()).toHaveValue("10")
   expect(pane.digest()).toBeChecked()
+  expect(pane.mark()).toHaveTextContent("Rocket")
   expect(screen.getByRole("status", { name: "Run result" })).toHaveTextContent(
     "You refused Visibility. The steps before it stay applied: nothing rolls back."
   )
@@ -158,11 +167,12 @@ test("Reset restores the defaults and clears every step", async () => {
   await waitFor(() => expect(stateOf("Make Apollo public")).toBe("done"))
 
   await press(user, "Reset")
-  expect(states()).toEqual(Array(8).fill("idle"))
+  expect(states()).toEqual(Array(9).fill("idle"))
   expect(pane.name()).toHaveValue("Apollo")
   expect(pane.region()).toHaveTextContent("Virginia")
   expect(pane.replicas()).toHaveValue("2")
   expect(pane.digest()).not.toBeChecked()
+  expect(pane.mark()).toHaveTextContent("Flag")
   expect(pane.visibility()).toHaveTextContent("Private")
   expect(screen.getByRole("status", { name: "Run result" })).toBeEmptyDOMElement()
   expect(screen.getByRole("button", { name: "Run" })).toBeEnabled()

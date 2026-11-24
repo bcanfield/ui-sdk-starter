@@ -62,7 +62,7 @@ function CoreSection() {
       </p>
 
       <div className="core-demo">
-        <ProjectMark defaultValue="leaf" />
+        <ProjectMark aria-label="Sample mark" defaultValue="leaf" />
         <Tabs defaultValue="week">
           <TabsList aria-label="Range">
             {RANGES.map((range) => (

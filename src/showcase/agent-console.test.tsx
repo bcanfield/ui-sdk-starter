@@ -27,7 +27,7 @@ test("the agent can't press Run", async () => {
   expect(result.ok).toBe(false)
   expect(result.error?.message).toMatch(/Run/)
   expect(screen.getAllByTestId("step-state").map((s) => s.textContent)).toEqual(
-    Array(8).fill("idle")
+    Array(9).fill("idle")
   )
 })
 

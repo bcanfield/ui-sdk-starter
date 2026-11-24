@@ -7,7 +7,7 @@ import { CoreSection } from "./core-section.tsx"
 afterEach(() => window.history.replaceState(null, "", "/"))
 
 const section = () => screen.getByRole("region", { name: "Built from core" })
-const markTrigger = () => within(screen.getByRole("group", { name: "Project mark" })).getByRole("button")
+const markTrigger = () => within(screen.getByRole("group", { name: "Sample mark" })).getByRole("button")
 
 test("shows the picker, its keyboard legend, its source and a shipped Range tabs", () => {
   render(<CoreSection />)
@@ -41,17 +41,17 @@ test("a person picks a mark with the keyboard and focus returns to the trigger",
 
 test("the agent sees the project mark and sets it to rocket through its agent key", async () => {
   render(<CoreSection />)
-  const entry = agent.snapshot().find((e) => e.label === "Project mark")
+  const entry = agent.snapshot().find((e) => e.label === "Sample mark")
   expect(entry).toMatchObject({ component: "project-mark", actions: ["setValue"], value: "leaf" })
 
   const result = await agent.act({
-    steps: [{ ref: "Project mark", action: "setValue", args: ["rocket"] }],
+    steps: [{ ref: "Sample mark", action: "setValue", args: ["rocket"] }],
   })
   expect(result.ok, result.error?.message).toBe(true)
   expect(markTrigger()).toHaveTextContent("Rocket")
 
   const refused = await agent.act({
-    steps: [{ ref: "Project mark", action: "setValue", args: ["spaceship"] }],
+    steps: [{ ref: "Sample mark", action: "setValue", args: ["spaceship"] }],
   })
   expect(refused.ok).toBe(false)
   expect(markTrigger()).toHaveTextContent("Rocket")

@@ -3,7 +3,7 @@ import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
 import { useEffect, useState, type RefObject } from "react"
 import { PlayButtons } from "./now-playing.tsx"
 import { OwnStep } from "./own-step.tsx"
-import { callOf, plan } from "./plan.ts"
+import { callOf, plan, TASK } from "./plan.ts"
 import type { usePaneHistory } from "./use-pane-history.ts"
 import { usePaneSnapshot } from "./use-pane-snapshot.ts"
 import type { usePlanPlayer } from "./use-plan-player.ts"
@@ -87,9 +87,7 @@ function AgentConsole({
           <TabsTab value="log">Log</TabsTab>
         </TabsList>
         <TabsPanel value="plan">
-          <p className="console-task">
-            Move Apollo to Frankfurt, scale it and make it public
-          </p>
+          <p className="console-task">{TASK}</p>
           <ol className="steps" aria-label="Plan">
             {plan.map((step, i) => {
               const row = rows[i]!
