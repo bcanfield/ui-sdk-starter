@@ -20,6 +20,11 @@ globalThis.ResizeObserver ??= class {
   unobserve() {}
   disconnect() {}
 }
+// jsdom's requestAnimationFrame ticks at 16ms and the agent bridge awaits two frames around every
+// step, so one real-pacing run costs seconds. Frames run on the next timer instead; no test asserts on paint timing.
+globalThis.requestAnimationFrame = (callback) =>
+  setTimeout(() => callback(performance.now()), 0) as unknown as number
+globalThis.cancelAnimationFrame = (handle) => clearTimeout(handle)
 document.head.append(
   Object.assign(document.createElement("style"), {
     textContent: "[popover] { display: block !important }",
