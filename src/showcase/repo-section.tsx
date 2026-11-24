@@ -1,4 +1,5 @@
 import { useId } from "react"
+import { Section } from "../sections/section.tsx"
 import paneTest from "./project-pane.test.tsx?raw"
 import "./repo-section.css"
 
@@ -32,13 +33,10 @@ function excerpt(source: string) {
 const EXCERPT = excerpt(paneTest)
 
 function RepoSection() {
-  const headingId = useId()
-  const captionId = useId()
   const helpersId = useId()
   return (
-    <section id="repo" aria-labelledby={headingId} aria-describedby={captionId}>
-      <h2 id={headingId}>In the repo</h2>
-      <p id={captionId} className="caption">
+    <Section id="repo" title="In the repo" caption="the real test file · read at build">
+      <p className="section-lede">
         This is the test for the project pane above. It drives the page through
         the same agent bridge the run uses, and it is read from the real file
         when the page builds.
@@ -78,7 +76,7 @@ function RepoSection() {
         the <code>{STRIP_LINE}</code> line in <code>{STRIP_FILE}</code>, then run{" "}
         <code>{STRIP_TAIL}</code>.
       </p>
-    </section>
+    </Section>
   )
 }
 

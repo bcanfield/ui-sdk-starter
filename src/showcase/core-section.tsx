@@ -1,6 +1,7 @@
 import { Tabs, TabsIndicator, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
 import { Toggle } from "@ui-sdk/react/toggle"
 import { useEffect, useId, useState } from "react"
+import { Section } from "../sections/section.tsx"
 import { ProjectMark } from "./project-mark/project-mark.tsx"
 import "./core-section.css"
 
@@ -34,8 +35,6 @@ function writeRtl(rtl: boolean) {
 }
 
 function CoreSection() {
-  const headingId = useId()
-  const captionId = useId()
   const legendId = useId()
   const [rtl, setRtl] = useState(readRtl)
 
@@ -46,15 +45,14 @@ function CoreSection() {
   }, [])
 
   return (
-    <section
+    <Section
       id="core"
       className="core"
       dir={rtl ? "rtl" : undefined}
-      aria-labelledby={headingId}
-      aria-describedby={captionId}
+      title="Built from core"
+      caption="definePrimitive · not shipped by ui-sdk"
     >
-      <h2 id={headingId}>Built from core</h2>
-      <p id={captionId} className="caption">
+      <p className="section-lede">
         ui-sdk doesn't ship a project mark picker, so this page builds one from
         @ui-sdk/core: a popover, one tab stop with arrows across the grid,
         fuzzy search and announcements. Flip the direction and its arrows
@@ -110,7 +108,7 @@ function CoreSection() {
           </li>
         ))}
       </ul>
-    </section>
+    </Section>
   )
 }
 

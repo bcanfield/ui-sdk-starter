@@ -17,7 +17,7 @@
   --warning: light-dark(#a34a07, #f59e0b);
   --danger: light-dark(#b91c1c, #ef4444);
   --info: light-dark(#1d4ed8, #3b82f6);
-  --glow: light-dark(#ffffff00, #22c55e0d);
+  --glow: light-dark(#14763814, #22c55e1f);
 
   --edge-hover: color-mix(in srgb, var(--accent) 34%, var(--edge));
 
@@ -27,11 +27,13 @@
   --size-meta: 11px;
   --size-control: 13px;
   --size-summary: 15px;
+  --size-hero: clamp(2.25rem, 7vw, 3.75rem);
 
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 12px;
 
+  --width-prose: 40rem;
   --width-wide: 64rem;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);

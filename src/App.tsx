@@ -8,8 +8,11 @@ function App() {
   return (
     <Preferences preferences={[colorScheme]}>
       <a className="skip-link" href="#content">Skip to content</a>
-      <main id="content">
+      <header className="topbar">
+        <span className="brand">ui-sdk</span>
         <ColorSchemeControl />
+      </header>
+      <main id="content">
         <Showcase />
       </main>
       <OverlayHost />
