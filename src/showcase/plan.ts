@@ -28,6 +28,11 @@ const plan: PlanStep[] = [
     steps: [{ ref: "Replicas", action: "setValue", args: [10] }],
   },
   {
+    say: "Give it a mark",
+    target: "mark",
+    steps: [{ ref: "Project mark", action: "setValue", args: ["rocket"] }],
+  },
+  {
     say: "Turn on the weekly digest",
     target: "digest",
     steps: [{ ref: "Weekly digest", action: "setChecked", args: [true] }],
@@ -43,6 +48,8 @@ const plan: PlanStep[] = [
     steps: [{ ref: "Visibility", action: "setValue", args: ["public"] }],
   },
 ]
+
+const TASK = "Move Apollo to Frankfurt, scale it, give it a mark and make it public"
 
 const READ_CALL = "query({ closed: true })"
 
@@ -80,4 +87,4 @@ function describeChanges(changes: AgentChange[]) {
     .join(", ")
 }
 
-export { callOf, describeChanges, describeRead, plan, type PlanStep }
+export { callOf, describeChanges, describeRead, plan, TASK, type PlanStep }

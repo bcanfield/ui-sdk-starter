@@ -22,6 +22,7 @@ import {
 import { Switch, SwitchThumb } from "@ui-sdk/react/switch"
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
 import { PANE_TABS, regions, visibilities } from "./pane-items.ts"
+import { ProjectMark } from "./project-mark/project-mark.tsx"
 
 function ProjectPane() {
   return (
@@ -62,6 +63,10 @@ function ProjectPane() {
                   <NumberInputIncrement aria-label="Increase" />
                 </NumberInputGroup>
               </NumberInput>
+            </Field>
+            <Field>
+              <FieldLabel>Project mark</FieldLabel>
+              <ProjectMark defaultValue="flag" triggerProps={{ "data-trace": "mark" }} />
             </Field>
             <div data-agent-confirm="Changes who can see Apollo">
               <Field data-trace="visibility">
