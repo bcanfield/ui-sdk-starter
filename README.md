@@ -52,6 +52,5 @@ rules for coding agents.
 - UI SDK docs: https://ui-sdk.dev/docs
 - Source: https://github.com/vercel-labs/ui
 - Docs for the installed version: `node_modules/@ui-sdk/react/docs/llms.txt`
-- Provenance: `docs/research/`
 
 The SDK is in beta, so APIs may change.
