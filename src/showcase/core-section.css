@@ -1,0 +1,69 @@
+.core-demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem 1.5rem;
+  margin-block: 1rem;
+
+  & > * {
+    min-width: 0;
+  }
+}
+
+.core-range-note {
+  margin-block-start: 0.5rem;
+  color: var(--fg-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+}
+
+.core-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-block: 1rem;
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-control);
+
+  & a {
+    color: var(--fg-secondary);
+  }
+
+  & a:hover {
+    color: var(--fg-primary);
+  }
+}
+
+.core-eyebrow {
+  margin-block: 1.25rem 0.5rem;
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.core-legend {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--fg-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+
+  & li {
+    display: grid;
+    grid-template-columns: minmax(7.5rem, max-content) minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+}
+
+.core-keys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
