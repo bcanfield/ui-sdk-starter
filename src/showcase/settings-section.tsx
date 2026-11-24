@@ -19,7 +19,7 @@ import {
 } from "@ui-sdk/react/select"
 import { Switch, SwitchThumb } from "@ui-sdk/react/switch"
 import { useState, type FormEvent } from "react"
-import { Section } from "./section.tsx"
+import { Section } from "../sections/section.tsx"
 
 function SettingsSection() {
   const [name, setName] = useState("Apollo")
