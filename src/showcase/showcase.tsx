@@ -1,4 +1,5 @@
 import { AgentSection } from "./agent-section.tsx"
+import { CoreSection } from "./core-section.tsx"
 import { SettingsSection } from "./settings-section.tsx"
 import { ToggleSection } from "./toggle-section.tsx"
 
@@ -9,6 +10,7 @@ function Showcase() {
       <ToggleSection />
       <SettingsSection />
       <AgentSection />
+      <CoreSection />
     </>
   )
 }
