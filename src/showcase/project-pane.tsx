@@ -25,20 +25,20 @@ import { PANE_TABS, regions, visibilities } from "./pane-items.ts"
 
 function ProjectPane() {
   return (
-    <div className="pane" data-pane>
+    <div className="pane" data-pane data-trace="pane">
       <Tabs defaultValue="general">
         <TabsList aria-label={PANE_TABS}>
-          <TabsTab value="general">General</TabsTab>
-          <TabsTab value="notifications">Notifications</TabsTab>
+          <TabsTab value="general" data-trace="tab:general">General</TabsTab>
+          <TabsTab value="notifications" data-trace="tab:notifications">Notifications</TabsTab>
         </TabsList>
         {/* keepMounted: the bridge switches tabs to reach a control, and an unmounted panel would drop the values set on it. */}
-        <TabsPanel value="general" keepMounted>
+        <TabsPanel value="general" keepMounted data-trace-panel="general">
           <div className="fields">
-            <Field>
+            <Field data-trace="name">
               <FieldLabel>Project name</FieldLabel>
               <Input defaultValue="Apollo" />
             </Field>
-            <Field>
+            <Field data-trace="region">
               <FieldLabel>Region</FieldLabel>
               <Select defaultValue="virginia">
                 <SelectTrigger>
@@ -53,7 +53,7 @@ function ProjectPane() {
                 </SelectContent>
               </Select>
             </Field>
-            <Field>
+            <Field data-trace="replicas">
               <NumberInput defaultValue={2} min={1} max={10}>
                 <FieldLabel>Replicas</FieldLabel>
                 <NumberInputGroup>
@@ -64,7 +64,7 @@ function ProjectPane() {
               </NumberInput>
             </Field>
             <div data-agent-confirm="Changes who can see Apollo">
-              <Field>
+              <Field data-trace="visibility">
                 <FieldLabel>Visibility</FieldLabel>
                 <Select defaultValue="private">
                   <SelectTrigger>
@@ -82,9 +82,9 @@ function ProjectPane() {
             </div>
           </div>
         </TabsPanel>
-        <TabsPanel value="notifications" keepMounted>
+        <TabsPanel value="notifications" keepMounted data-trace-panel="notifications">
           <div className="fields">
-            <Field className="inline">
+            <Field className="inline" data-trace="digest">
               <Switch defaultChecked={false}>
                 <SwitchThumb />
               </Switch>

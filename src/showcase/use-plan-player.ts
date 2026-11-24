@@ -7,6 +7,7 @@ import { describeChanges, describeRead, plan } from "./plan.ts"
 type StepState = "idle" | "running" | "waiting" | "done" | "refused"
 type Row = { state: StepState; note?: string }
 type Pacing = { leadIn: number; between: number }
+type Trace = { place: (target: string) => void }
 
 const defaultPacing: Pacing = { leadIn: 260, between: 700 }
 
@@ -30,12 +31,21 @@ const reducedMotion = () =>
 
 const isConfirmOpen = () => overlays.entries().some((entry) => entry.type === "confirm")
 
-function usePlanPlayer(pacing: Pacing, paneRoot: RefObject<HTMLElement | null>) {
+function usePlanPlayer(
+  pacing: Pacing,
+  paneRoot: RefObject<HTMLElement | null>,
+  trace?: Trace
+) {
   const [rows, setRows] = useState(idleRows)
   const [next, setNext] = useState(0)
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState("")
   const [paneKey, setPaneKey] = useState(0)
+  const [active, setActive] = useState(-1)
+  const traceRef = useRef(trace)
+  useEffect(() => {
+    traceRef.current = trace
+  })
   const nextRef = useRef(0)
   const current = useRef(-1)
   const abort = useRef<AbortController | null>(null)
@@ -63,6 +73,10 @@ function usePlanPlayer(pacing: Pacing, paneRoot: RefObject<HTMLElement | null>) 
         const index = current.current
         if (index < 0) return
         const state = isConfirmOpen() ? "waiting" : "running"
+        // The bridge has just switched to the control's tab; place the trace once that has painted.
+        if (state === "waiting") {
+          requestAnimationFrame(() => traceRef.current?.place(plan[index]!.target))
+        }
         updateRows((all) =>
           all.map((row, i) =>
             i === index && (row.state === "running" || row.state === "waiting") ? { state } : row
@@ -75,7 +89,9 @@ function usePlanPlayer(pacing: Pacing, paneRoot: RefObject<HTMLElement | null>) 
   async function runStep(index: number, signal: AbortSignal, id: number) {
     const step = plan[index]!
     current.current = index
+    setActive(index)
     setRow(index, { state: "running" })
+    traceRef.current?.place(step.target)
     await pause(reducedMotion() ? 0 : pacing.leadIn, signal)
     if (signal.aborted) return stopped(index, id)
 
@@ -92,6 +108,7 @@ function usePlanPlayer(pacing: Pacing, paneRoot: RefObject<HTMLElement | null>) 
     const outcome = await agent.act({ steps: step.steps }, { signal })
     if (id !== runId.current) return false
     if (signal.aborted) return stopped(index, id)
+    traceRef.current?.place(step.target)
     if (outcome.ok) {
       const changes = describeChanges(outcome.steps.flatMap((s) => s.changes ?? []))
       setRow(index, { state: "done", note: changes || "Holds." })
@@ -146,6 +163,7 @@ function usePlanPlayer(pacing: Pacing, paneRoot: RefObject<HTMLElement | null>) 
     current.current = -1
     abort.current = null
     advance(0)
+    setActive(-1)
     setRunning(false)
     updateRows(idleRows)
     setResult("")
@@ -154,6 +172,7 @@ function usePlanPlayer(pacing: Pacing, paneRoot: RefObject<HTMLElement | null>) 
 
   return {
     rows,
+    active,
     running,
     finished: next >= plan.length,
     result,

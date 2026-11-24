@@ -1,6 +1,7 @@
 import { Button } from "@ui-sdk/react/button"
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
 import { useEffect, useState, type RefObject } from "react"
+import { PlayButtons } from "./now-playing.tsx"
 import { OwnStep } from "./own-step.tsx"
 import { callOf, plan } from "./plan.ts"
 import type { usePaneHistory } from "./use-pane-history.ts"
@@ -40,15 +41,17 @@ function AgentConsole({
   player,
   history,
   paneRoot,
+  playHere,
 }: {
   player: ReturnType<typeof usePlanPlayer>
   history: ReturnType<typeof usePaneHistory>
   paneRoot: RefObject<HTMLElement | null>
+  playHere: boolean
 }) {
   const [tab, selectTab] = useConsoleTab()
   const [offered] = useState(webMcpOffered)
   const snapshot = usePaneSnapshot(paneRoot, player.paneKey, tab === "snapshot")
-  const { rows, running, finished, result } = player
+  const { rows, running, result } = player
 
   return (
     <div className="console" data-agent-hidden>
@@ -59,12 +62,7 @@ function AgentConsole({
           {offered ? "WebMCP: tools offered to this browser's agent" : "WebMCP: not detected"}
         </span>
         <div className="player">
-          <Button onClick={player.run} disabled={running || finished}>
-            Run
-          </Button>
-          <Button onClick={player.step} disabled={running || finished}>
-            Step
-          </Button>
+          {playHere && <PlayButtons player={player} />}
           <Button onClick={player.stop} disabled={!running}>
             Stop
           </Button>
