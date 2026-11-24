@@ -68,6 +68,7 @@ test("Deploy token reads [redacted], even on the closed tab", async () => {
   )
 })
 
+// excerpt:start
 test("an agent sets every control, and values survive the tab switches", async () => {
   render(<App />)
   const result = await agent.act({
@@ -92,6 +93,7 @@ test("an agent sets every control, and values survive the tab switches", async (
   ).toBeChecked()
   expect(screen.getByLabelText("Deploy token")).toHaveValue("sk_new")
 })
+// excerpt:end
 
 test("Visibility asks a person: Refuse keeps it, Allow applies it", async () => {
   const user = userEvent.setup()
