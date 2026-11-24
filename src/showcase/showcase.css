@@ -30,3 +30,145 @@
   width: 100%;
   max-width: none;
 }
+
+@media (min-width: 60rem) {
+  #agent-run {
+    --run-width: min(72rem, calc(100vw - 4rem));
+    width: var(--run-width);
+    margin-inline: calc((100% - var(--run-width)) / 2);
+  }
+}
+
+.run-grid {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (min-width: 56rem) {
+  .run-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  }
+}
+
+.console {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+}
+
+.console-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.eyebrow {
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-eyebrow);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.player {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.console-note {
+  margin: 0;
+  color: var(--fg-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.console code,
+.console-note code {
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+}
+
+.console-task {
+  margin: 0.75rem 0 0.25rem;
+  color: var(--fg-primary);
+  font-size: var(--size-summary);
+}
+
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding-block: 0.625rem;
+  border-bottom: 1px solid var(--edge-subtle);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.step-number {
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.step-body {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.step-say {
+  color: var(--fg-primary);
+  font-size: 0.875rem;
+}
+
+.step-call {
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
+}
+
+.step-note {
+  color: var(--fg-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+  overflow-wrap: anywhere;
+}
+
+.step-state {
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-eyebrow);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.step:is([data-state="running"], [data-state="waiting"]) .step-state {
+  color: var(--accent);
+}
+
+.step[data-state="refused"] :is(.step-state, .step-note) {
+  color: var(--danger);
+}
+
+.run-result {
+  display: block;
+  min-height: 1.6em;
+  color: var(--fg-secondary);
+  font-size: 0.875rem;
+}
