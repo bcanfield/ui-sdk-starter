@@ -16,7 +16,7 @@ function useAgentTrace(wrap: RefObject<HTMLElement | null>) {
   const box = useRef<HTMLElement | null>(null)
   const last = useRef<string | null>(null)
 
-  const draw = useCallback((scroll = true) => {
+  const draw = useCallback((scroll: ScrollLogicalPosition | false = "nearest") => {
     const trace = box.current
     const root = wrap.current
     if (!trace || !root || !last.current) return
@@ -32,14 +32,16 @@ function useAgentTrace(wrap: RefObject<HTMLElement | null>) {
     // The bridge doesn't scroll a control that is already partly on screen, so it can sit under the sticky
     // strip. Bring it clear only while the visitor is watching the pane; never pull them off the plan.
     if (scroll && to.bottom > 0 && to.top < window.innerHeight) {
-      target.scrollIntoView({ block: "nearest", behavior: reducedMotion() ? "instant" : "smooth" })
+      target.scrollIntoView({ block: scroll, behavior: reducedMotion() ? "instant" : "smooth" })
     }
   }, [wrap])
 
   const place = useCallback(
-    (target: string) => {
+    (target: string, { asking = false } = {}) => {
       last.current = target
-      draw()
+      // At narrow widths the confirm dialog sits at the bottom and the strip at the top, so the control it
+      // asks about goes to the middle, between them.
+      draw(asking ? "center" : "nearest")
     },
     [draw]
   )

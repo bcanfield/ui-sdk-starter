@@ -7,7 +7,7 @@ import { describeOutcome, describeRead, plan, type StepState } from "./plan.ts"
 
 type Row = { state: StepState; note?: string }
 type Pacing = { leadIn: number; between: number }
-type Trace = { place: (target: string) => void }
+type Trace = { place: (target: string, options?: { asking?: boolean }) => void }
 
 const defaultPacing: Pacing = { leadIn: 260, between: 700 }
 
@@ -73,7 +73,7 @@ function usePlanPlayer(
       // The bridge has just switched to the control's tab; place the trace once that has painted.
       if (state === "waiting") {
         cancelAnimationFrame(frame)
-        frame = requestAnimationFrame(() => traceRef.current?.place(plan[index]!.target))
+        frame = requestAnimationFrame(() => traceRef.current?.place(plan[index]!.target, { asking: true }))
       }
       updateRows((all) =>
         all.map((row, i) =>

@@ -112,6 +112,14 @@ kbd {
   gap: 0.5rem;
 }
 
+/* On a phone a centred dialog covers the middle of the page, where the control it asks about usually is.
+   Anchored to the bottom, it leaves that control readable and puts its buttons under the thumb. */
+@media (max-width: 40rem) {
+  [data-slot="alert-dialog-content"] {
+    margin-block: auto max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
 .skip-link {
   position: absolute;
   left: 1rem;

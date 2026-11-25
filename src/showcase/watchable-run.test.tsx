@@ -5,6 +5,7 @@ import { gate, gateClosed, press, renderRun, until } from "./run-kit.tsx"
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
 
 const trace = (container: HTMLElement) => container.querySelector("[data-agent-trace]")
@@ -91,6 +92,17 @@ test("the step at the gate is marked waiting with the trace on its control, and 
   await gateClosed()
   await traceGone(container)
   expect(agent.snapshot().find((entry) => entry.label === "Visibility")?.value).toBe("private")
+})
+
+test("when the gate opens, the control it asks about is brought to mid-screen, clear of the strip and the dialog", async () => {
+  const { user, container } = renderRun()
+  const field = container.querySelector<HTMLElement>('[data-trace="visibility"]')!
+  // jsdom lays nothing out: put Visibility low on a 390 × 844 screen, where a bottom-anchored dialog would sit.
+  vi.spyOn(field, "getBoundingClientRect").mockReturnValue(new DOMRect(16, 760, 358, 70))
+  const scrolled = vi.spyOn(field, "scrollIntoView")
+  await press(user, "Run")
+  await gate()
+  await until(() => expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ block: "center" })))
 })
 
 test("the trace is there only while a run goes: Stop and a single Step both take it away", async () => {
