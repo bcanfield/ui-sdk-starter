@@ -52,8 +52,10 @@ function AgentConsole({
       <p className="console-note">
         The agent can't see or press this console. It's scripted: a written plan, no
         model, sent through the real bridge and the real confirm dialog. Each step is its
-        own act call, so when one is refused the run carries on with the next. While the
-        dialog is asking, it holds the page: Refuse or Esc is how you stop there.
+        own act call so you can watch it, and when one is refused the run carries on with
+        the next. Don't copy that pacing for a real agent: the beta.17 docs say to plan the
+        whole task and send it in one act call. While the dialog is asking, it holds the
+        page: Refuse or Esc is how you stop there.
       </p>
       {import.meta.env.DEV && (
         <p className="console-note">
