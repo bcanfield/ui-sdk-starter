@@ -80,4 +80,4 @@ const MARKS: Mark[] = [
   },
 ]
 
-export { MARKS, type Mark }
+export { MARKS }

@@ -1,3 +1,14 @@
+.section-lede {
+  color: var(--fg-secondary);
+  line-height: 1.6;
+}
+
+.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .pane {
   min-width: 0;
   padding: 1rem;
@@ -37,7 +48,7 @@
   align-items: start;
 }
 
-/* 56rem is also WIDE in now-playing.tsx, which moves Run and Step between the strip and the console. */
+/* 56rem is also WIDE in use-wide.ts, which moves Run, Step and Stop between the strip and the console. */
 @media (min-width: 56rem) {
   #agent-run {
     --run-width: min(var(--width-wide), calc(100vw - 4rem));
@@ -131,7 +142,8 @@
   top: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  /* A fixed first track: sized to its content, it followed the status word and slid the narration sideways. */
+  grid-template-columns: 4.75rem minmax(0, 1fr) auto;
   grid-template-areas:
     "count say buttons"
     "status say buttons";
@@ -419,6 +431,10 @@
 
 .own-step-result {
   overflow-wrap: anywhere;
+
+  &[data-state="error"] {
+    color: var(--danger);
+  }
 }
 
 .snapshot-block {

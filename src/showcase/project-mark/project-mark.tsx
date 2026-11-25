@@ -48,19 +48,16 @@ function MarkIcon({ value, ...props }: { value: string } & ComponentProps<"svg">
   )
 }
 
-type ProjectMarkProps = Omit<ProjectMarkOptions, "items"> & {
-  "aria-label"?: string
-  triggerProps?: Omit<ComponentProps<typeof Trigger>, "children"> & Record<`data-${string}`, string>
-}
+type ProjectMarkProps = Omit<ProjectMarkOptions, "items"> & { "aria-label"?: string }
 
-function ProjectMark({ "aria-label": label, triggerProps, ...options }: ProjectMarkProps) {
+function ProjectMark({ "aria-label": label, ...options }: ProjectMarkProps) {
   const field = useFieldControl()
   const named = field ? field.props({ "aria-label": label }) : { "aria-label": label ?? "Project mark" }
   return (
     <Root {...named} items={ITEMS} {...options}>
       {({ value }) => (
         <>
-          <Trigger {...triggerProps}>
+          <Trigger>
             <MarkIcon value={value} />
             <span>{byValue.get(value)?.label ?? "None"}</span>
           </Trigger>
@@ -83,4 +80,4 @@ function ProjectMark({ "aria-label": label, triggerProps, ...options }: ProjectM
   )
 }
 
-export { MarkIcon, ProjectMark }
+export { ProjectMark }
