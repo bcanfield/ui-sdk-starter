@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { confirm } from "@ui-sdk/react/alert-dialog"
 import { Button } from "@ui-sdk/react/button"
 import { useState } from "react"
-import { expect, test } from "vitest"
+import { expect, test, vi } from "vitest"
 import { agent, askPerson, onAnswer, type Answer } from "./agent.ts"
 import { App } from "./App.tsx"
 
@@ -69,6 +69,30 @@ test("onAnswer reports the person's Refuse, and not an abort that closed the ask
   await refused
   stop()
   expect(answers).toEqual([{ confirm: "Erases every saved draft", allowed: false }])
+})
+
+test("a listener that throws can't turn the person's Allow into a failure", async () => {
+  const user = userEvent.setup()
+  renderShell()
+  const heard: Answer[] = []
+  const logged = vi.spyOn(console, "error").mockImplementation(() => {})
+  const stopBroken = onAnswer(() => {
+    throw new Error("listener broke")
+  })
+  const stop = onAnswer((answer) => heard.push(answer))
+
+  const run = agent.act({ steps: [{ ref: "Erase drafts", action: "press" }] })
+  const ask = await screen.findByRole("alertdialog", { name: ASK })
+  await user.click(within(ask).getByRole("button", { name: "Allow" }))
+  const outcome = await run
+  stopBroken()
+  stop()
+
+  expect(outcome.ok, outcome.error?.message).toBe(true)
+  expect(screen.getByRole("status", { name: "Erase result" })).toHaveTextContent("Erased")
+  expect(heard).toEqual([{ confirm: "Erases every saved draft", allowed: true }])
+  expect(logged).toHaveBeenCalledWith(new Error("listener broke"))
+  logged.mockRestore()
 })
 
 test("a settled ask stops listening to its signal, so a later abort can't close another dialog", async () => {

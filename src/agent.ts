@@ -6,7 +6,8 @@ type Answer = { confirm: string; allowed: boolean }
 
 const answerListeners = new Set<(answer: Answer) => void>()
 
-// Only the person's own Allow or Refuse is reported: an abort or timeout also closes the ask with no.
+// Only the person's own Allow or Refuse is reported. The bridge aborts `signal` both when the act's own
+// signal aborts and when its allow timeout runs out; either closes the ask with no, and neither is reported.
 function onAnswer(listener: (answer: Answer) => void) {
   answerListeners.add(listener)
   return () => {
@@ -26,7 +27,14 @@ const askPerson: Allow = async (step, { signal }) => {
       cancelLabel: "Refuse",
     })
     if (!signal.aborted) {
-      for (const listener of answerListeners) listener({ confirm: step.confirm, allowed })
+      for (const listener of answerListeners) {
+        // A listener's bug must not turn the person's answer into a failed step.
+        try {
+          listener({ confirm: step.confirm, allowed })
+        } catch (error) {
+          console.error(error)
+        }
+      }
     }
     return allowed
   } finally {
