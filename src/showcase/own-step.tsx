@@ -13,6 +13,8 @@ const example = JSON.stringify(
 
 type Act = Parameters<typeof agent.act>[0]
 
+const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
+
 function OwnStep({ disabled }: { disabled: boolean }) {
   const [text, setText] = useState(example)
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
@@ -25,19 +27,24 @@ function OwnStep({ disabled }: { disabled: boolean }) {
     } catch (error) {
       setResult({
         ok: false,
-        text: `JSON parse error: ${error instanceof Error ? error.message : String(error)}`,
+        text: `JSON parse error: ${messageOf(error)}`,
       })
       return
     }
     setBusy(true)
     setResult(null)
-    const outcome = await agent.act(call as Act)
-    setBusy(false)
-    setResult(
-      outcome.ok
-        ? { ok: true, text: `ok: ${describeOutcome(outcome)}` }
-        : { ok: false, text: `error: ${outcome.error?.message}` }
-    )
+    try {
+      const outcome = await agent.act(call as Act)
+      setResult(
+        outcome.ok
+          ? { ok: true, text: `ok: ${describeOutcome(outcome)}` }
+          : { ok: false, text: `error: ${outcome.error?.message}` }
+      )
+    } catch (error) {
+      setResult({ ok: false, text: `error: ${messageOf(error)}` })
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (

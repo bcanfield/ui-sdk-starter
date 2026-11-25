@@ -1,11 +1,12 @@
 import { fireEvent, screen, within } from "@testing-library/react"
-import { afterEach, expect, test } from "vitest"
+import { afterEach, expect, test, vi } from "vitest"
 import { agent } from "../agent.ts"
 import { gate, press, renderRun as renderSection, until, type User } from "./run-kit.tsx"
 
 afterEach(() => {
   window.history.replaceState(null, "", "/")
   Reflect.deleteProperty(document, "modelContext")
+  vi.restoreAllMocks()
 })
 
 const renderRun = (query = "") => renderSection({ query }).user
@@ -65,6 +66,27 @@ test("invalid JSON is shown as a JSON parse error", async () => {
   expect(ownResult()).toHaveTextContent(/^JSON parse error/)
   expect(ownResult()).toHaveAttribute("data-state", "error")
   expect(screen.getByLabelText("Project name")).toHaveValue("Apollo")
+})
+
+for (const input of ["null", "[]", "{}"]) {
+  test(`an own step of ${input} shows the error and lets you run again`, async () => {
+    const user = renderRun()
+    setOwn(input)
+    await runOwn(user)
+    await until(() => expect(ownResult()).toHaveAttribute("data-state", "error"))
+    expect(ownResult()).toHaveTextContent(/^error: \S/)
+    expect(screen.getByRole("button", { name: "Run step" })).toBeEnabled()
+    expect(screen.getByLabelText("Project name")).toHaveValue("Apollo")
+  })
+}
+
+test("when the bridge throws, the own step shows the error and lets you run again", async () => {
+  const user = renderRun()
+  vi.spyOn(agent, "act").mockRejectedValueOnce(new Error("bridge went away"))
+  await runOwn(user)
+  await until(() => expect(ownResult()).toHaveTextContent("error: bridge went away"))
+  expect(ownResult()).toHaveAttribute("data-state", "error")
+  expect(screen.getByRole("button", { name: "Run step" })).toBeEnabled()
 })
 
 test("?console=snapshot shows what the agent sees: General's controls, and Notifications as a tab to open", () => {
