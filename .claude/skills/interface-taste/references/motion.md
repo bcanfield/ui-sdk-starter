@@ -23,17 +23,17 @@ Motion confirms an action, keeps space consistent, or softens a change that woul
 
    | Element | Duration |
    | --- | --- |
-   | Hover colour, border, background; press feedback | `--duration-fast` 150ms |
-   | Tooltips, small popovers, meters | `--duration-popup` 180ms |
+   | Hover colour, border, background; press feedback | `--duration-fast` |
+   | Tooltips, small popovers, meters | `--duration-popup` |
    | List-item entrance | 250-280ms |
-   | Drawers, sidebars, dialogs, full-screen menus | `--duration-panel` 240ms |
+   | Drawers, sidebars, dialogs, full-screen menus | `--duration-panel` |
 
    UI motion stays under 300ms. Exit is faster than enter.
 
 ## Recipes
 
 - **Transition named properties**: `transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out)`. `transition: all` animates things you did not intend.
-- **Press**: `:active { transform: scale(0.97) }` on buttons and pills; `scale(0.995)` on full-width rows.
+- **Press**: `:active { scale: 0.97 }` on buttons and pills (the `scale` property, inside `no-preference`); `0.995` on full-width rows.
 - **Entrance**: fade from `opacity: 0; transform: translateY(4px)`. Scale entrances start at 0.95-0.98, never 0.
 - **Stagger**: 30-80ms between items (40ms is the default step), only for the first few items, never blocking input.
 - **Popovers and tooltips**: ui-sdk popups get `data-starting-style` on the first frame and `data-ending-style` while exiting, and stay mounted until the exit finishes. Style the from/to state on those attributes, and use `transform-origin: var(--transform-origin)`. Placement, flipping (`data-side`) and viewport clamping are ui-sdk's job, so never position in JS. Modals stay centred. Exit faster than enter: shorten `transition-duration` on `[data-ending-style]`.
@@ -58,7 +58,7 @@ Motion confirms an action, keeps space consistent, or softens a change that woul
 ## Gates
 
 - Wrap hover-driven transforms and hover previews in `@media (hover: hover) and (pointer: fine)` (or the same `matchMedia` check in JS) so taps do not trigger them.
-- Write transforms (scale, translate), loops, stagger and pulses **inside `@media (prefers-reduced-motion: no-preference)`**. Opacity and colour transitions may sit outside it. Any stylesheet with `transition`/`animation` must contain a `prefers-reduced-motion` block (the style-guard test checks this). Never use a global `* { … !important }` reset.
+- Write transforms (scale, translate), loops, stagger and pulses **inside `@media (prefers-reduced-motion: no-preference)`**. Opacity and colour transitions may sit outside it. Any stylesheet that transitions or animates `transform`, `translate`, `scale`, `rotate` or keyframes must contain a `prefers-reduced-motion` block, and no scale or scale transition may sit outside `no-preference` (the style-guard test checks this). Never use a global `* { … !important }` reset.
 
 ## Checking motion
 

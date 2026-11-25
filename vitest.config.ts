@@ -1,4 +1,4 @@
-import { defineConfig, mergeConfig } from "vitest/config"
+import { configDefaults, defineConfig, mergeConfig } from "vitest/config"
 import viteConfig from "./vite.config.ts"
 
 export default mergeConfig(
@@ -6,7 +6,9 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: "jsdom",
+      exclude: [...configDefaults.exclude, ".claude/**"],
       setupFiles: ["./src/test/setup.ts"],
+      // Departs from ui-sdk's `css: false` template: the style-guard test reads CSS as text.
       css: { include: [/\?raw$/] },
     },
   })
