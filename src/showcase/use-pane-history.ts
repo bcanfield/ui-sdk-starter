@@ -1,7 +1,7 @@
 import { createHistory, type HistoryEntry } from "@ui-sdk/react/history"
 import { useEffect, useRef, useState, type RefObject } from "react"
 import { agent } from "../agent.ts"
-import { itemLabel, PANE_TABS } from "./pane-items.ts"
+import { isTabSwitch, itemLabel } from "./pane-items.ts"
 import { paneIn } from "./pane-scope.ts"
 
 type LogEntry = { id: string; source: "agent" | "you"; text: string; reverted: boolean }
@@ -33,9 +33,6 @@ function describeMissed(missed: Missed[], entries: readonly HistoryEntry[]) {
   const detail = missed.map((m) => `${labelOf(m)} (${m.ref}) ${m.key}`)
   return { text: `Couldn't put back: ${labels.join(", ")}`, title: detail.join(", ") }
 }
-
-// Tab switches are the bridge reaching behind a closed tab, not edits a person made or the plan asked for.
-const isTabSwitch = (entry: HistoryEntry) => entry.label === PANE_TABS
 
 function usePaneHistory(runGrid: RefObject<HTMLElement | null>) {
   const history = useRef<ReturnType<typeof createHistory> | null>(null)

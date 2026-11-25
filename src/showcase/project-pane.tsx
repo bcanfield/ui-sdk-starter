@@ -21,42 +21,62 @@ import {
 } from "@ui-sdk/react/select"
 import { Switch, SwitchThumb } from "@ui-sdk/react/switch"
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
-import { PANE_TABS, regions, visibilities } from "./pane-items.ts"
+import { LABELS, PANE_TABS, regions, visibilities } from "./pane-items.ts"
 import { ProjectMark } from "./project-mark/project-mark.tsx"
+
+type Item = { value: string; label: string }
+
+function SelectField({
+  label,
+  items,
+  defaultValue,
+  trace,
+}: {
+  label: string
+  items: Item[]
+  defaultValue: string
+  trace: string
+}) {
+  return (
+    <Field data-trace={trace}>
+      <FieldLabel>{label}</FieldLabel>
+      <Select defaultValue={defaultValue}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </Field>
+  )
+}
 
 function ProjectPane() {
   return (
     <div className="pane" data-pane data-trace="pane">
       <Tabs defaultValue="general">
         <TabsList aria-label={PANE_TABS}>
-          <TabsTab value="general" data-trace="tab:general">General</TabsTab>
-          <TabsTab value="notifications" data-trace="tab:notifications">Notifications</TabsTab>
+          <TabsTab value="general" data-trace="tab:general">{LABELS.general}</TabsTab>
+          <TabsTab value="notifications" data-trace="tab:notifications">
+            {LABELS.notifications}
+          </TabsTab>
         </TabsList>
         {/* keepMounted: the bridge switches tabs to reach a control, and an unmounted panel would drop the values set on it. */}
         <TabsPanel value="general" keepMounted data-trace-panel="general">
           <div className="fields">
             <Field data-trace="name">
-              <FieldLabel>Project name</FieldLabel>
+              <FieldLabel>{LABELS.name}</FieldLabel>
               <Input defaultValue="Apollo" />
             </Field>
-            <Field data-trace="region">
-              <FieldLabel>Region</FieldLabel>
-              <Select defaultValue="virginia">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {regions.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+            <SelectField label={LABELS.region} items={regions} defaultValue="virginia" trace="region" />
             <Field data-trace="replicas">
               <NumberInput defaultValue={2} min={1} max={10}>
-                <FieldLabel>Replicas</FieldLabel>
+                <FieldLabel>{LABELS.replicas}</FieldLabel>
                 <NumberInputGroup>
                   <NumberInputDecrement aria-label="Decrease" />
                   <NumberInputControl />
@@ -65,25 +85,16 @@ function ProjectPane() {
               </NumberInput>
             </Field>
             <Field data-trace="mark">
-              <FieldLabel>Project mark</FieldLabel>
+              <FieldLabel>{LABELS.mark}</FieldLabel>
               <ProjectMark defaultValue="flag" />
             </Field>
             <div data-agent-confirm="Changes who can see Apollo">
-              <Field data-trace="visibility">
-                <FieldLabel>Visibility</FieldLabel>
-                <Select defaultValue="private">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {visibilities.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+              <SelectField
+                label={LABELS.visibility}
+                items={visibilities}
+                defaultValue="private"
+                trace="visibility"
+              />
             </div>
           </div>
         </TabsPanel>
@@ -93,10 +104,10 @@ function ProjectPane() {
               <Switch defaultChecked={false}>
                 <SwitchThumb />
               </Switch>
-              <FieldLabel>Weekly digest</FieldLabel>
+              <FieldLabel>{LABELS.digest}</FieldLabel>
             </Field>
             <Field>
-              <FieldLabel>Deploy token</FieldLabel>
+              <FieldLabel>{LABELS.token}</FieldLabel>
               <PasswordInput defaultValue="apollo-demo-token">
                 <PasswordInputControl />
                 <PasswordInputToggle aria-label="Show token" />

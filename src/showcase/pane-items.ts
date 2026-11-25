@@ -14,14 +14,29 @@ const visibilities = [
 
 const PANE_TABS = "Project settings"
 
+const LABELS = {
+  name: "Project name",
+  region: "Region",
+  replicas: "Replicas",
+  mark: "Project mark",
+  visibility: "Visibility",
+  digest: "Weekly digest",
+  token: "Deploy token",
+  general: "General",
+  notifications: "Notifications",
+} as const
+
 const itemsByControl: Record<string, { value: string; label: string }[]> = {
-  Region: regions,
-  Visibility: visibilities,
-  "Project mark": MARKS,
+  [LABELS.region]: regions,
+  [LABELS.visibility]: visibilities,
+  [LABELS.mark]: MARKS,
 }
+
+// Tab switches are the bridge reaching behind a closed tab, not edits a person made or the plan asked for.
+const isTabSwitch = (entry: { label?: string }) => entry.label === PANE_TABS
 
 function itemLabel(control: string, value: unknown) {
   return itemsByControl[control]?.find((item) => item.value === value)?.label
 }
 
-export { itemLabel, PANE_TABS, regions, visibilities }
+export { isTabSwitch, itemLabel, LABELS, PANE_TABS, regions, visibilities }
