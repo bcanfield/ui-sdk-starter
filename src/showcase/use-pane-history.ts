@@ -41,6 +41,7 @@ function usePaneHistory(paneRoot: RefObject<HTMLElement | null>) {
   const [entries, setEntries] = useState<readonly HistoryEntry[]>([])
   const [undoing, setUndoing] = useState(false)
   const [result, setResult] = useState<UndoResult>({ text: "" })
+  const generation = useRef(0)
 
   useEffect(() => {
     const recorder = createHistory(agent, {
@@ -56,20 +57,29 @@ function usePaneHistory(paneRoot: RefObject<HTMLElement | null>) {
   }, [paneRoot])
 
   function clear() {
+    generation.current++
     history.current?.clear()
     setEntries([])
+    setUndoing(false)
     setResult({ text: "" })
   }
 
   async function undoAgent() {
     const recorder = history.current
     if (!recorder) return
+    const started = ++generation.current
     setUndoing(true)
     setResult({ text: "" })
-    const missed = await recorder.undoSource("agent")
-    if (history.current !== recorder) return
+    let outcome: UndoResult
+    try {
+      const missed = await recorder.undoSource("agent")
+      outcome = missed.length ? describeMissed(missed, recorder.entries()) : { text: UNDONE }
+    } catch (error) {
+      outcome = { text: `Couldn't undo the agent: ${error instanceof Error ? error.message : String(error)}` }
+    }
+    if (history.current !== recorder || generation.current !== started) return
     setUndoing(false)
-    setResult(missed.length ? describeMissed(missed, recorder.entries()) : { text: UNDONE })
+    setResult(outcome)
   }
 
   const shown = entries.filter((entry) => !isTabSwitch(entry))
