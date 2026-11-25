@@ -9,5 +9,5 @@ function syncThemeColor() {
 }
 
 syncThemeColor()
+// subscribe also fires when the OS scheme flips while the choice is "system".
 colorScheme.subscribe(syncThemeColor)
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncThemeColor)

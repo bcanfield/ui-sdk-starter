@@ -59,6 +59,8 @@ export const EXEMPT_TOKENS: Record<string, string> = {
   glow: "decorative, never carries text",
   edge: "hairline divider, not a control edge",
   "edge-subtle": "hairline divider, not a control edge",
+  "shadow-near": "popup shadow, never carries text",
+  "shadow-far": "popup shadow, never carries text",
 }
 
 const lightDark = /^light-dark\(\s*(#[0-9a-f]{6}(?:[0-9a-f]{2})?)\s*,\s*(#[0-9a-f]{6}(?:[0-9a-f]{2})?)\s*\)$/i

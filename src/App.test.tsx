@@ -1,6 +1,14 @@
 import { render, screen, within } from "@testing-library/react"
-import { expect, test } from "vitest"
+import userEvent from "@testing-library/user-event"
+import { afterEach, expect, test } from "vitest"
+import { agent } from "./agent.ts"
 import { App } from "./App.tsx"
+import { colorScheme } from "./theme/color-scheme.ts"
+
+afterEach(() => {
+  colorScheme.set("system")
+  localStorage.clear()
+})
 
 test("a skip link leads to the main landmark", () => {
   render(<App />)
@@ -8,7 +16,7 @@ test("a skip link leads to the main landmark", () => {
     "href",
     "#content"
   )
-  expect(screen.getByRole("main")).toHaveAttribute("id", "content")
+  expect(document.getElementById("content")).toBe(screen.getByRole("main"))
 })
 
 test("the top bar holds the brand mark and the color scheme control", () => {
@@ -24,4 +32,15 @@ test("the page has at most one h1", () => {
   expect(
     screen.queryAllByRole("heading", { level: 1 }).length
   ).toBeLessThanOrEqual(1)
+})
+
+test("choosing a theme sets data-color-scheme on <html> and saves it", async () => {
+  const user = userEvent.setup()
+  render(<App />)
+  await user.click(within(screen.getByRole("banner")).getByRole("radio", { name: "Dark" }))
+  expect(document.documentElement).toHaveAttribute("data-color-scheme", "dark")
+  expect(localStorage.getItem("color-scheme")).toContain("dark")
+  const result = await agent.act({ steps: [{ ref: "Theme", action: "setValue", args: ["light"] }] })
+  expect(result.ok, result.error?.message).toBe(true)
+  expect(document.documentElement).toHaveAttribute("data-color-scheme", "light")
 })

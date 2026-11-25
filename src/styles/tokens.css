@@ -3,6 +3,7 @@
   --surface-raised: light-dark(#f8f8fa, #0a0a0a);
   --surface-card: light-dark(#f0f0f3, #111111);
   --surface-hover: light-dark(#e6e6ea, #181818);
+  --surface-floating: color-mix(in srgb, var(--surface-card) 94%, transparent);
 
   --edge: light-dark(#d1d1d6, #222222);
   --edge-subtle: light-dark(#e0e0e4, #1a1a1a);
@@ -13,7 +14,7 @@
   --fg-muted: light-dark(#63636b, #84848e);
 
   --accent: light-dark(#147638, #22c55e);
-  --ok: light-dark(#147638, #22c55e);
+  --ok: var(--accent);
   --warning: light-dark(#a34a07, #f59e0b);
   --danger: light-dark(#b91c1c, #ef4444);
   --info: light-dark(#1d4ed8, #3b82f6);
@@ -22,6 +23,8 @@
   --edge-hover: color-mix(in srgb, var(--accent) 34%, var(--edge));
   --accent-edge: color-mix(in srgb, var(--accent) 30%, transparent);
   --accent-tint: color-mix(in srgb, var(--accent) 10%, transparent);
+  --shadow-near: light-dark(#0000000f, #00000080);
+  --shadow-far: light-dark(#0000002e, #000000b3);
 
   --font-display: "Geist Pixel", var(--ui-font-mono);
 
@@ -38,6 +41,8 @@
 
   --width-prose: 40rem;
   --width-wide: 64rem;
+
+  --blur-floating: 14px;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -61,6 +66,9 @@
   --ui-destructive: var(--danger);
   --ui-ring: var(--accent);
   --ui-ring-border: var(--accent);
+  --ui-shadow:
+    0 1px 2px var(--shadow-near),
+    0 12px 32px -8px var(--shadow-far);
   --ui-radius: 0.5rem;
   --ui-font-sans: "Geist Variable", system-ui, sans-serif;
   --ui-font-mono: "Geist Mono Variable", ui-monospace, monospace;
