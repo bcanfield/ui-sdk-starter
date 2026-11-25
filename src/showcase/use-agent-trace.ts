@@ -1,4 +1,5 @@
 import { useCallback, useRef, type RefObject } from "react"
+import { reducedMotion } from "./motion.ts"
 
 // A target is a `data-trace` key in the pane. One on a panel that isn't selected resolves to that panel's tab.
 function resolve(wrap: HTMLElement, target: string) {
@@ -7,9 +8,6 @@ function resolve(wrap: HTMLElement, target: string) {
   if (!element || !panel || panel.hasAttribute("data-selected")) return element
   return wrap.querySelector<HTMLElement>(`[data-trace="tab:${panel.dataset.tracePanel}"]`) ?? element
 }
-
-const reducedMotion = () =>
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
 
 // The box moves only when the player places it, never on the bridge's own tab switches: mid-step the bridge
 // opens closed tabs and puts them back while it searches, and following that bounced the box or left it

@@ -34,6 +34,10 @@
               "@ui-sdk/*/internal/*"
             ],
             "message": "Never import ui-sdk internals."
+          },
+          {
+            "group": ["**/showcase", "**/showcase/**"],
+            "message": "Only src/App.tsx mounts the showcase, so deleting src/showcase/ strips it (ADR 0001)."
           }
         ]
       }
@@ -110,6 +114,32 @@
     {
       "files": ["*.config.ts"],
       "env": { "browser": false, "node": true }
+    },
+    {
+      "files": ["src/App.tsx", "src/showcase/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@ui-sdk/react",
+                "message": "Import each component from its entry, like @ui-sdk/react/button."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@ui-sdk/*/internal", "@ui-sdk/*/internal/*"],
+                "message": "Never import ui-sdk internals."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/showcase/run-kit.tsx"],
+      "rules": { "react/only-export-components": "off" }
     }
   ]
 }

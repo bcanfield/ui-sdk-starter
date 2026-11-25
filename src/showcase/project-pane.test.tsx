@@ -1,8 +1,9 @@
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { expect, test } from "vitest"
 import { agent } from "../agent.ts"
 import { App } from "../App.tsx"
+import { gate, gateClosed, until } from "./run-kit.tsx"
 
 const SENTENCE = "Changes who can see Apollo"
 
@@ -42,7 +43,7 @@ test("a person can operate every control", async () => {
   expect(name).toHaveValue("Atlas")
 
   await user.click(screen.getByRole("combobox", { name: "Region" }))
-  await user.click(await screen.findByRole("option", { name: "Tokyo" }))
+  await user.click(await until(() => screen.getByRole("option", { name: "Tokyo" })))
   expect(screen.getByRole("combobox", { name: "Region" })).toHaveTextContent("Tokyo")
 
   await user.click(screen.getByRole("button", { name: "Increase" }))
@@ -85,7 +86,7 @@ test("a person and the agent both set the project mark", async () => {
   const user = userEvent.setup()
   render(<App />)
   await user.click(markTrigger())
-  await user.click(await screen.findByRole("option", { name: "Bolt" }))
+  await user.click(await until(() => screen.getByRole("option", { name: "Bolt" })))
   expect(markTrigger()).toHaveTextContent("Bolt")
 
   const result = await agent.act({
@@ -97,6 +98,7 @@ test("a person and the agent both set the project mark", async () => {
 
 // excerpt:start
 test("an agent sets every control, and values survive the tab switches", async () => {
+  const user = userEvent.setup()
   render(<App />)
   const result = await agent.act({
     steps: [
@@ -108,17 +110,19 @@ test("an agent sets every control, and values survive the tab switches", async (
     ],
   })
   expect(result.ok, result.error?.message).toBe(true)
-  expect(screen.getByRole("tab", { name: "General" })).toHaveAttribute(
-    "aria-selected",
-    "true"
-  )
+
+  // The last two controls are on Notifications, so the bridge opened that tab.
+  const tab = (name: string) => screen.getByRole("tab", { name })
+  expect(tab("Notifications")).toHaveAttribute("aria-selected", "true")
+  expect(screen.getByLabelText("Deploy token")).toHaveValue("sk_new")
+
+  await user.click(tab("General"))
   expect(screen.getByLabelText("Project name")).toHaveValue("Apollo API")
   expect(screen.getByRole("combobox", { name: "Region" })).toHaveTextContent("Frankfurt")
   expect(screen.getByRole("textbox", { name: "Replicas" })).toHaveValue("8")
   expect(
     screen.getByRole("switch", { name: "Weekly digest", hidden: true })
   ).toBeChecked()
-  expect(screen.getByLabelText("Deploy token")).toHaveValue("sk_new")
 })
 // excerpt:end
 
@@ -130,37 +134,36 @@ test("Visibility asks a person: Refuse keeps it, Allow applies it", async () => 
     agent.act({ steps: [{ ref: "Visibility", action: "setValue", args: ["public"] }] })
 
   const refused = set()
-  const ask = await screen.findByRole("alertdialog", { name: "Let the agent continue?" })
+  const ask = await gate()
   expect(ask).toHaveAccessibleDescription(SENTENCE)
-  await user.click(screen.getByRole("button", { name: "Refuse" }))
+  await user.click(within(ask).getByRole("button", { name: "Refuse" }))
   const first = await refused
   expect(first.ok).toBe(false)
   expect(first.error?.message).toMatch(/said no/)
   expect(visibility()).toHaveTextContent("Private")
 
   const allowed = set()
-  await screen.findByRole("alertdialog", { name: "Let the agent continue?" })
-  await user.click(screen.getByRole("button", { name: "Allow" }))
+  await user.click(within(await gate()).getByRole("button", { name: "Allow" }))
   expect((await allowed).ok).toBe(true)
-  await waitFor(() => expect(visibility()).toHaveTextContent("Public"))
+  await until(() => expect(visibility()).toHaveTextContent("Public"))
 })
 
 test("the step sends the value, so the person is asked once", async () => {
   const user = userEvent.setup()
   render(<App />)
-  let asks = 0
   const run = agent.act({
     steps: [{ ref: "Visibility", action: "setValue", args: ["public"] }],
   })
-  // Sending the label ("Public") instead asks twice, first with the label and then with the value (prototype VERDICT c).
+  const settled = run.then(() => null)
+  // Sending the label ("Public") instead asks twice, first with the label and then with the value (prototype
+  // VERDICT c). The act can't settle while an ask is open, so whichever comes first says if there is another.
+  let asks = 0
   for (;;) {
-    const allow = await screen
-      .findByRole("button", { name: "Allow" }, { timeout: 500 })
-      .catch(() => null)
-    if (!allow) break
+    const ask = await Promise.race([settled, gate()])
+    if (!ask) break
     asks++
-    await user.click(allow)
-    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument())
+    await user.click(within(ask).getByRole("button", { name: "Allow" }))
+    await gateClosed()
   }
   expect((await run).ok).toBe(true)
   expect(asks).toBe(1)

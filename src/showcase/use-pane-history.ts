@@ -36,7 +36,7 @@ function describeMissed(missed: Missed[], entries: readonly HistoryEntry[]) {
 // Tab switches are the bridge reaching behind a closed tab, not edits a person made or the plan asked for.
 const isTabSwitch = (entry: HistoryEntry) => entry.label === PANE_TABS
 
-function usePaneHistory(paneRoot: RefObject<HTMLElement | null>, paneKey: number) {
+function usePaneHistory(paneRoot: RefObject<HTMLElement | null>) {
   const history = useRef<ReturnType<typeof createHistory> | null>(null)
   const [entries, setEntries] = useState<readonly HistoryEntry[]>([])
   const [undoing, setUndoing] = useState(false)
@@ -55,13 +55,11 @@ function usePaneHistory(paneRoot: RefObject<HTMLElement | null>, paneKey: number
     }
   }, [paneRoot])
 
-  const firstKey = useRef(paneKey)
-  useEffect(() => {
-    if (paneKey === firstKey.current) return
+  function clear() {
     history.current?.clear()
     setEntries([])
     setResult({ text: "" })
-  }, [paneKey])
+  }
 
   async function undoAgent() {
     const recorder = history.current
@@ -81,7 +79,8 @@ function usePaneHistory(paneRoot: RefObject<HTMLElement | null>, paneKey: number
     undoing,
     result,
     undoAgent,
+    clear,
   }
 }
 
-export { usePaneHistory, type LogEntry }
+export { usePaneHistory }

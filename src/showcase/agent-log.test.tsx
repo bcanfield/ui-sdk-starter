@@ -1,25 +1,15 @@
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { act, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { OverlayHost } from "@ui-sdk/react/overlays"
-import { afterEach, expect, test } from "vitest"
+import { createRoot, type Root } from "react-dom/client"
+import { afterAll, afterEach, beforeAll, describe, expect, test } from "vitest"
 import { agent } from "../agent.ts"
 import { AgentRunSection } from "./agent-run-section.tsx"
-
-type User = ReturnType<typeof userEvent.setup>
+import { gate, press, renderRun as renderSection, until, type User } from "./run-kit.tsx"
 
 afterEach(() => window.history.replaceState(null, "", "/"))
 
-function renderRun() {
-  window.history.replaceState(null, "", "/?console=log")
-  const user = userEvent.setup()
-  render(
-    <>
-      <AgentRunSection pacing={{ leadIn: 0, between: 0 }} />
-      <OverlayHost />
-    </>
-  )
-  return user
-}
+const renderRun = () => renderSection({ query: "?console=log" }).user
 
 const pane = {
   name: () => screen.getByLabelText("Project name"),
@@ -31,25 +21,24 @@ const pane = {
   token: () => screen.getByLabelText("Deploy token", { selector: "input" }),
 }
 
-const press = (user: User, name: string) => user.click(screen.getByRole("button", { name }))
 const logRows = () => within(screen.getByRole("list", { name: "Log" })).queryAllByRole("listitem")
 const logText = () => logRows().map((row) => row.textContent)
 const undoResult = () => screen.getByRole("status", { name: "Undo result" })
-const gate = () => screen.findByRole("alertdialog", { name: "Let the agent continue?" })
 
 async function runWithAllow(user: User) {
   await press(user, "Run")
   const ask = await gate()
   await user.click(within(ask).getByRole("button", { name: "Allow" }))
-  await waitFor(() => expect(logText()).toContain("agentVisibility → Public"))
-  await waitFor(() => expect(screen.getByRole("button", { name: "Stop" })).toBeDisabled())
+  await until(() => expect(logText()).toContain("agentVisibility → Public"))
+  await until(() => expect(screen.getByRole("button", { name: "Stop" })).toBeDisabled())
 }
 
 async function personEdits(user: User) {
+  await user.click(screen.getByRole("tab", { name: "General" }))
   await user.clear(pane.name())
   await user.type(pane.name(), "Atlas")
   await user.click(pane.region())
-  await user.click(await screen.findByRole("option", { name: "Tokyo" }))
+  await user.click(await until(() => screen.getByRole("option", { name: "Tokyo" })))
 }
 
 async function undoAgent(user: User, answer: "Allow" | "Refuse" = "Allow") {
@@ -57,7 +46,7 @@ async function undoAgent(user: User, answer: "Allow" | "Refuse" = "Allow") {
   const ask = await gate()
   expect(ask).toHaveAccessibleDescription("Changes who can see Apollo")
   await user.click(within(ask).getByRole("button", { name: answer }))
-  await waitFor(() => expect(undoResult()).not.toBeEmptyDOMElement())
+  await until(() => expect(undoResult()).not.toBeEmptyDOMElement())
 }
 
 test("?console=log selects the Log tab", () => {
@@ -153,26 +142,52 @@ test("Reset empties the log and the undo result", async () => {
   expect(pane.name()).toHaveValue("Apollo")
 })
 
-test("run, person edit, undo agent, Reset: five times with nothing left unrestored", async () => {
-  const user = renderRun()
-  for (let round = 1; round <= 5; round++) {
-    await runWithAllow(user)
-    await personEdits(user)
-    await undoAgent(user)
 
-    expect(undoResult(), `round ${round}`).toHaveTextContent(
-      "Agent's changes undone. Yours stayed."
+// The prototype's first undo run once couldn't put two controls back, so this repeats the sequence on one
+// mounted page and one bridge, with Reset between rounds. Each round is its own test with its own time budget.
+describe("run, person edit, undo agent, Reset: five rounds on one page", () => {
+  let root: Root
+  let host: HTMLElement
+  let user: User
+
+  beforeAll(() => {
+    window.history.replaceState(null, "", "/?console=log")
+    host = document.body.appendChild(document.createElement("div"))
+    root = createRoot(host)
+    act(() =>
+      root.render(
+        <>
+          <AgentRunSection pacing={{ leadIn: 0, between: 0 }} />
+          <OverlayHost />
+        </>
+      )
     )
-    expect(undoResult().textContent, `round ${round}`).not.toMatch(/Couldn't put back/)
-    expect(pane.replicas(), `round ${round}`).toHaveValue("2")
-    expect(pane.digest(), `round ${round}`).not.toBeChecked()
-    expect(pane.mark(), `round ${round}`).toHaveTextContent("Flag")
-    expect(pane.visibility(), `round ${round}`).toHaveTextContent("Private")
-    expect(pane.name(), `round ${round}`).toHaveValue("Atlas")
-    expect(pane.region(), `round ${round}`).toHaveTextContent("Tokyo")
+    user = userEvent.setup()
+  })
 
-    await press(user, "Reset")
-    expect(logRows(), `round ${round}`).toHaveLength(0)
+  afterAll(() => {
+    act(() => root.unmount())
+    host.remove()
+  })
+
+  for (const round of [1, 2, 3, 4, 5]) {
+    test(`round ${round}: nothing left unrestored`, async () => {
+      await runWithAllow(user)
+      await personEdits(user)
+      await undoAgent(user)
+
+      expect(undoResult()).toHaveTextContent("Agent's changes undone. Yours stayed.")
+      expect(undoResult().textContent).not.toMatch(/Couldn't put back/)
+      expect(pane.replicas()).toHaveValue("2")
+      expect(pane.digest()).not.toBeChecked()
+      expect(pane.mark()).toHaveTextContent("Flag")
+      expect(pane.visibility()).toHaveTextContent("Private")
+      expect(pane.name()).toHaveValue("Atlas")
+      expect(pane.region()).toHaveTextContent("Tokyo")
+
+      await press(user, "Reset")
+      expect(logRows()).toHaveLength(0)
+    })
   }
 })
 

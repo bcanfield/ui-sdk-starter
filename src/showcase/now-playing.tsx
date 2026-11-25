@@ -1,18 +1,8 @@
 import { Button } from "@ui-sdk/react/button"
-import { plan, TASK } from "./plan.ts"
-import type { StepState, usePlanPlayer } from "./use-plan-player.ts"
+import { plan, STEP_STATUS, TASK } from "./plan.ts"
+import type { PlanPlayer } from "./use-plan-player.ts"
 
-const STATUS: Record<StepState, string> = {
-  idle: "ready",
-  running: "running",
-  waiting: "needs you",
-  done: "done",
-  refused: "refused",
-}
-
-type Player = ReturnType<typeof usePlanPlayer>
-
-function PlayButtons({ player }: { player: Player }) {
+function PlayButtons({ player }: { player: PlanPlayer }) {
   const blocked = player.running || player.finished
   return (
     <>
@@ -22,11 +12,14 @@ function PlayButtons({ player }: { player: Player }) {
       <Button onClick={player.step} disabled={blocked}>
         Step
       </Button>
+      <Button onClick={player.stop} disabled={!player.running}>
+        Stop
+      </Button>
     </>
   )
 }
 
-function NowPlaying({ player }: { player: Player }) {
+function NowPlaying({ player }: { player: PlanPlayer }) {
   const step = plan[player.active]
   const state = step ? player.rows[player.active]!.state : "idle"
   return (
@@ -35,7 +28,7 @@ function NowPlaying({ player }: { player: Player }) {
         {step ? `${player.active + 1}/${plan.length}` : `${plan.length} steps`}
       </span>
       <span className="now-playing-status" data-state={state}>
-        {STATUS[state]}
+        {STEP_STATUS[state]}
       </span>
       <span className="now-playing-say" data-state={state}>
         {step ? step.say : TASK}

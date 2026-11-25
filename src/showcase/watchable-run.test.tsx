@@ -1,35 +1,14 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import { OverlayHost } from "@ui-sdk/react/overlays"
-import { afterEach, beforeEach, expect, test, vi } from "vitest"
+import { screen, within } from "@testing-library/react"
+import { afterEach, expect, test, vi } from "vitest"
 import { agent } from "../agent.ts"
-import { AgentRunSection } from "./agent-run-section.tsx"
-
-// setup.ts reports every element visible, so the bridge would set Weekly digest without opening its tab.
-// Here a closed panel's content is hidden, as in a browser.
-beforeEach(() => {
-  vi.spyOn(Element.prototype, "checkVisibility").mockImplementation(function (this: Element) {
-    return !this.closest("[hidden]")
-  })
-})
+import { gate, gateClosed, press, renderRun, until } from "./run-kit.tsx"
 
 afterEach(() => {
-  vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
 
-function renderRun() {
-  const user = userEvent.setup()
-  const { container } = render(
-    <>
-      <AgentRunSection pacing={{ leadIn: 0, between: 0 }} />
-      <OverlayHost />
-    </>
-  )
-  return { user, container }
-}
-
 const trace = (container: HTMLElement) => container.querySelector("[data-agent-trace]")
+const traceGone = (container: HTMLElement) => until(() => expect(trace(container)).toBeNull())
 
 // Every place the trace lands, in order, with repeats collapsed.
 function recordTrace(container: HTMLElement) {
@@ -63,25 +42,25 @@ function recordTrace(container: HTMLElement) {
   }
 }
 
-const stateOf = (say: string) => {
-  const row = within(screen.getByRole("list", { name: "Plan" }))
+const rowOf = (say: string) =>
+  within(screen.getByRole("list", { name: "Plan" }))
     .getAllByRole("listitem")
     .find((item) => item.textContent?.includes(say))!
-  return row
-}
+const stateIs = (say: string, state: string) =>
+  until(() => expect(rowOf(say)).toHaveAttribute("data-state", state))
 
 test("the trace lands on each step's target, on a closed panel's tab first, and leaves when the run ends", async () => {
   const { user, container } = renderRun()
   expect(trace(container)).toBeNull()
   const stop = recordTrace(container)
 
-  await user.click(screen.getByRole("button", { name: "Run" }))
-  const ask = await screen.findByRole("alertdialog", { name: "Let the agent continue?" })
+  await press(user, "Run")
+  const ask = await gate()
   expect(trace(container)).toHaveAttribute("aria-hidden", "true")
   expect(trace(container)).toHaveTextContent(/agent/i)
   await user.click(within(ask).getByRole("button", { name: "Allow" }))
-  await waitFor(() => expect(stateOf("Make Apollo public")).toHaveAttribute("data-state", "done"))
-  await waitFor(() => expect(trace(container)).toBeNull())
+  await stateIs("Make Apollo public", "done")
+  await traceGone(container)
 
   expect(stop()).toEqual([
     "pane",
@@ -101,17 +80,30 @@ test("the trace lands on each step's target, on a closed panel's tab first, and 
   expect(mark.querySelector('[data-slot="project-mark-trigger"]')).not.toBeNull()
 })
 
-test("the step at the gate is marked waiting with the trace on its control, and Reset takes the trace away", async () => {
+test("the step at the gate is marked waiting with the trace on its control, and Refuse takes the trace away", async () => {
   const { user, container } = renderRun()
-  await user.click(screen.getByRole("button", { name: "Run" }))
-  await screen.findByRole("alertdialog", { name: "Let the agent continue?" })
-  expect(stateOf("Make Apollo public")).toHaveAttribute("data-state", "waiting")
-  await waitFor(() => expect(trace(container)).toHaveAttribute("data-target", "visibility"))
+  await press(user, "Run")
+  const ask = await gate()
+  await stateIs("Make Apollo public", "waiting")
+  await until(() => expect(trace(container)).toHaveAttribute("data-target", "visibility"))
 
-  // The modal dialog takes a person's pointer, so user-event can't reach Reset; this dispatches its click directly.
-  fireEvent.click(screen.getByRole("button", { name: "Reset" }))
-  await waitFor(() => expect(trace(container)).toBeNull())
+  await user.click(within(ask).getByRole("button", { name: "Refuse" }))
+  await gateClosed()
+  await traceGone(container)
   expect(agent.snapshot().find((entry) => entry.label === "Visibility")?.value).toBe("private")
+})
+
+test("the trace is there only while a run goes: Stop and a single Step both take it away", async () => {
+  const { user, container } = renderRun({ pacing: { leadIn: 0, between: 60_000 } })
+  await press(user, "Run")
+  await stateIs("Read the page", "done")
+  expect(trace(container)).not.toBeNull()
+  await press(user, "Stop")
+  await traceGone(container)
+
+  await press(user, "Step")
+  await stateIs("Rename the project", "done")
+  await traceGone(container)
 })
 
 function stubWidth(wide: boolean) {
@@ -123,21 +115,34 @@ function stubWidth(wide: boolean) {
   }))
 }
 
-const playButtons = () => screen.getAllByRole("button", { name: /^(Run|Step)$/ })
+const playButtons = () => screen.getAllByRole("button", { name: /^(Run|Step|Stop)$/ })
 
-test("below 56rem the strip holds the only Run and Step, and narrates the step with its status", async () => {
+test("below 56rem the strip holds the only Run, Step and Stop, and narrates the step with its status", async () => {
   stubWidth(false)
   const { user } = renderRun()
   const strip = screen.getByRole("group", { name: "Now playing" })
-  expect(playButtons()).toHaveLength(2)
+  expect(playButtons()).toHaveLength(3)
   for (const button of playButtons()) expect(strip).toContainElement(button)
   expect(strip).toHaveTextContent("Move Apollo to Frankfurt, scale it, give it a mark and make it public")
+  expect(strip).not.toContainElement(screen.getByRole("button", { name: "Reset" }))
 
   await user.click(within(strip).getByRole("button", { name: "Run" }))
-  await screen.findByRole("alertdialog", { name: "Let the agent continue?" })
+  await gate()
+  await until(() => expect(strip).toHaveTextContent("needs you"))
   expect(strip).toHaveTextContent("9/9")
   expect(strip).toHaveTextContent("Make Apollo public")
-  expect(strip).toHaveTextContent("needs you")
+})
+
+test("below 56rem Stop in the strip stops the run", async () => {
+  stubWidth(false)
+  const { user } = renderRun({ pacing: { leadIn: 0, between: 60_000 } })
+  const strip = screen.getByRole("group", { name: "Now playing" })
+  await user.click(within(strip).getByRole("button", { name: "Run" }))
+  await stateIs("Read the page", "done")
+  await user.click(within(strip).getByRole("button", { name: "Stop" }))
+  await until(() => expect(within(strip).getByRole("button", { name: "Run" })).toBeEnabled())
+  expect(within(strip).getByRole("button", { name: "Stop" })).toBeDisabled()
+  expect(rowOf("Rename the project")).toHaveAttribute("data-state", "idle")
 })
 
 test("a refused step reads refused in the strip", async () => {
@@ -146,16 +151,16 @@ test("a refused step reads refused in the strip", async () => {
   const strip = screen.getByRole("group", { name: "Now playing" })
   for (let i = 0; i < 4; i++) {
     await user.click(within(strip).getByRole("button", { name: "Step" }))
-    await waitFor(() => expect(within(strip).getByRole("button", { name: "Step" })).toBeEnabled())
+    await until(() => expect(within(strip).getByRole("button", { name: "Step" })).toBeEnabled())
   }
   expect(strip).toHaveTextContent("4/9")
   expect(strip).toHaveTextContent("Scale to 12 replicas")
   expect(strip).toHaveTextContent("refused")
 })
 
-test("from 56rem the console holds the only Run and Step, and there is no strip", () => {
+test("from 56rem the console holds the only Run, Step and Stop, and there is no strip", () => {
   stubWidth(true)
   renderRun()
   expect(screen.queryByRole("group", { name: "Now playing" })).toBeNull()
-  expect(playButtons()).toHaveLength(2)
+  expect(playButtons()).toHaveLength(3)
 })

@@ -11,7 +11,16 @@ function usePaneSnapshot(paneRoot: RefObject<HTMLElement | null>, paneKey: numbe
     const read = () =>
       setEntries(agent.snapshot().filter((entry) => inPane(paneRoot, entry)))
     read()
-    return agent.subscribe(read)
+    // A change is reported before React commits it: after a tab switch the new panel is still hidden.
+    let frame = 0
+    const stop = agent.subscribe(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(read)
+    })
+    return () => {
+      stop()
+      cancelAnimationFrame(frame)
+    }
   }, [paneRoot, paneKey, active])
   return entries
 }

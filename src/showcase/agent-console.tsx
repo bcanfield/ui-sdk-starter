@@ -3,10 +3,10 @@ import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
 import { useEffect, useState, type RefObject } from "react"
 import { PlayButtons } from "./now-playing.tsx"
 import { OwnStep } from "./own-step.tsx"
-import { callOf, plan, TASK } from "./plan.ts"
+import { callOf, plan, STEP_STATUS, TASK } from "./plan.ts"
 import type { usePaneHistory } from "./use-pane-history.ts"
 import { usePaneSnapshot } from "./use-pane-snapshot.ts"
-import type { usePlanPlayer } from "./use-plan-player.ts"
+import type { PlanPlayer } from "./use-plan-player.ts"
 
 const TABS = ["plan", "snapshot", "log"] as const
 
@@ -43,7 +43,7 @@ function AgentConsole({
   paneRoot,
   playHere,
 }: {
-  player: ReturnType<typeof usePlanPlayer>
+  player: PlanPlayer
   history: ReturnType<typeof usePaneHistory>
   paneRoot: RefObject<HTMLElement | null>
   playHere: boolean
@@ -63,9 +63,6 @@ function AgentConsole({
         </span>
         <div className="player">
           {playHere && <PlayButtons player={player} />}
-          <Button onClick={player.stop} disabled={!running}>
-            Stop
-          </Button>
           <Button onClick={player.reset}>Reset</Button>
         </div>
       </div>
@@ -102,7 +99,7 @@ function AgentConsole({
                     {row.note && <span className="step-note">{row.note}</span>}
                   </div>
                   <span className="step-state" data-testid="step-state">
-                    {row.state}
+                    {STEP_STATUS[row.state]}
                   </span>
                 </li>
               )
