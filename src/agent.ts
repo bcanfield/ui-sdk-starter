@@ -1,20 +1,25 @@
 import { confirm } from "@ui-sdk/react/alert-dialog"
 import { createAgent, registerTools } from "@ui-sdk/react/agent"
 
-const agent = createAgent({
-  allow: (step, { signal }) => {
-    if (!step.confirm) return true
-    signal.addEventListener("abort", () => confirm.controller.close(), {
-      once: true,
-    })
-    return confirm({
+type Allow = NonNullable<NonNullable<Parameters<typeof createAgent>[0]>["allow"]>
+
+const askPerson: Allow = async (step, { signal }) => {
+  if (!step.confirm) return true
+  const close = () => confirm.controller.close()
+  signal.addEventListener("abort", close, { once: true })
+  try {
+    return await confirm({
       title: "Let the agent continue?",
       description: step.confirm,
       confirmLabel: "Allow",
       cancelLabel: "Refuse",
     })
-  },
-})
+  } finally {
+    signal.removeEventListener("abort", close)
+  }
+}
+
+const agent = createAgent({ allow: askPerson })
 
 if (import.meta.env.DEV) {
   Object.assign(window, { agent })
@@ -27,4 +32,4 @@ if (import.meta.hot) {
   import.meta.hot.dispose(unregister)
 }
 
-export { agent }
+export { agent, askPerson }

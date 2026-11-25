@@ -1,7 +1,8 @@
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { confirm } from "@ui-sdk/react/alert-dialog"
 import { expect, test } from "vitest"
-import { agent } from "../agent.ts"
+import { agent, askPerson } from "../agent.ts"
 import { App } from "../App.tsx"
 import { gate, gateClosed, until } from "./run-kit.tsx"
 
@@ -146,6 +147,25 @@ test("Visibility asks a person: Refuse keeps it, Allow applies it", async () => 
   await user.click(within(await gate()).getByRole("button", { name: "Allow" }))
   expect((await allowed).ok).toBe(true)
   await until(() => expect(visibility()).toHaveTextContent("Public"))
+})
+
+test("a settled ask stops listening to its signal, so a later abort can't close another dialog", async () => {
+  const user = userEvent.setup()
+  render(<App />)
+  const controller = new AbortController()
+  const step = { ref: "c1", component: "select", action: "setValue", args: [], confirm: SENTENCE }
+  const asked = askPerson(step, { signal: controller.signal })
+  await user.click(within(await gate()).getByRole("button", { name: "Allow" }))
+  expect(await asked).toBe(true)
+  await gateClosed()
+
+  const later = confirm({ title: "Something else?", confirmLabel: "Yes", cancelLabel: "No" })
+  const other = await until(() => screen.getByRole("alertdialog", { name: "Something else?" }))
+  controller.abort()
+  await new Promise((settle) => setTimeout(settle, 0))
+  expect(screen.getByRole("alertdialog", { name: "Something else?" })).toBe(other)
+  await user.click(within(other).getByRole("button", { name: "No" }))
+  expect(await later).toBe(false)
 })
 
 test("the step sends the value, so the person is asked once", async () => {
