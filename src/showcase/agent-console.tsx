@@ -109,7 +109,7 @@ function AgentConsole({
           <output className="run-result" aria-label="Run result">
             {result}
           </output>
-          <OwnStep disabled={running} />
+          <OwnStep disabled={running} onBusyChange={player.hold} />
         </TabsPanel>
         <TabsPanel value="snapshot">
           <p className="console-task">What the agent sees on the pane, live.</p>

@@ -3,7 +3,7 @@ import { plan, STEP_STATUS, TASK } from "./plan.ts"
 import type { PlanPlayer } from "./use-plan-player.ts"
 
 function PlayButtons({ player }: { player: PlanPlayer }) {
-  const blocked = player.running || player.finished
+  const blocked = player.running || player.finished || player.held
   return (
     <>
       <Button onClick={player.run} disabled={blocked}>

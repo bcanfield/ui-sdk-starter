@@ -15,10 +15,21 @@ type Act = Parameters<typeof agent.act>[0]
 
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
-function OwnStep({ disabled }: { disabled: boolean }) {
+function OwnStep({
+  disabled,
+  onBusyChange,
+}: {
+  disabled: boolean
+  onBusyChange: (busy: boolean) => void
+}) {
   const [text, setText] = useState(example)
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusyState] = useState(false)
+
+  function setBusy(next: boolean) {
+    setBusyState(next)
+    onBusyChange(next)
+  }
 
   async function run() {
     let call: unknown

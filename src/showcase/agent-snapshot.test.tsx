@@ -46,6 +46,29 @@ test("a confirm-marked own step asks through the dialog", async () => {
   expect(screen.getByRole("combobox", { name: "Visibility" })).toHaveTextContent("Private")
 })
 
+test("while an own step waits on the person, the plan can't start", async () => {
+  const user = renderRun()
+  typeOwn({ steps: [{ ref: "Visibility", action: "setValue", args: ["public"] }] })
+  await runOwn(user)
+  const ask = await gate()
+  expect(screen.getByRole("button", { name: "Run" })).toBeDisabled()
+  expect(screen.getByRole("button", { name: "Step" })).toBeDisabled()
+  await user.click(within(ask).getByRole("button", { name: "Refuse" }))
+  await until(() => expect(screen.getByRole("button", { name: "Run" })).toBeEnabled())
+  expect(screen.getAllByTestId("step-state").map((state) => state.textContent)).toEqual(
+    Array(9).fill("ready")
+  )
+})
+
+test("while the plan runs, Run step waits", async () => {
+  const user = renderRun()
+  await press(user, "Run")
+  const ask = await gate()
+  expect(screen.getByRole("button", { name: "Run step" })).toBeDisabled()
+  await user.click(within(ask).getByRole("button", { name: "Refuse" }))
+  await until(() => expect(screen.getByRole("button", { name: "Run step" })).toBeEnabled())
+})
+
 test("a malformed step shows the bridge's own shape error, marked as an error, and changes nothing", async () => {
   const user = renderRun()
   const bad = { steps: [{ ref: "Project name", action: "setValue", value: "x" }] }

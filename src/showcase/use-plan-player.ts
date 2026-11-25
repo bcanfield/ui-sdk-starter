@@ -39,6 +39,7 @@ function usePlanPlayer(
   const [result, setResult] = useState("")
   const [paneKey, setPaneKey] = useState(0)
   const [active, setActive] = useState(-1)
+  const [held, setHeld] = useState(false)
   const traceRef = useRef(trace)
   useEffect(() => {
     traceRef.current = trace
@@ -193,6 +194,9 @@ function usePlanPlayer(
     finished: next >= plan.length,
     result,
     paneKey,
+    // An own step holds the bridge, so the plan waits rather than read its confirm as the plan's own.
+    held,
+    hold: setHeld,
     run: () => play(plan.length),
     step: () => play(1),
     stop,
