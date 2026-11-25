@@ -81,7 +81,7 @@ function AgentConsole({
                     <code className="step-call">{callOf(step)}</code>
                     {row.note && <span className="step-note">{row.note}</span>}
                   </div>
-                  <span className="step-state" data-testid="step-state">
+                  <span className="eyebrow step-state" data-testid="step-state">
                     {STEP_STATUS[row.state]}
                   </span>
                 </li>
@@ -107,7 +107,7 @@ function AgentConsole({
           <ol className="log" aria-label="Log">
             {history.log.map((entry) => (
               <li key={entry.id} className="log-entry" data-reverted={entry.reverted || undefined}>
-                <span className="source-tag" data-source={entry.source}>
+                <span className="eyebrow source-tag" data-source={entry.source}>
                   {entry.source}
                 </span>
                 <span className="log-text">{entry.text}</span>

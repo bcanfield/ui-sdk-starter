@@ -77,7 +77,7 @@ function CoreSection() {
         </a>
       </div>
 
-      <p id={legendId} className="core-eyebrow">
+      <p id={legendId} className="eyebrow core-eyebrow">
         Keyboard
       </p>
       <ul aria-labelledby={legendId} className="core-legend">

@@ -27,7 +27,7 @@ function NowPlaying({ player }: { player: PlanPlayer }) {
       <span className="now-playing-count">
         {step ? `${player.active + 1}/${plan.length}` : `${plan.length} steps`}
       </span>
-      <span className="now-playing-status" data-state={state}>
+      <span className="eyebrow now-playing-status" data-state={state}>
         {STEP_STATUS[state]}
       </span>
       <span className="now-playing-say" data-state={state}>

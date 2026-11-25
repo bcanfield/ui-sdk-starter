@@ -54,7 +54,7 @@ function RepoSection() {
         </pre>
       </figure>
 
-      <p id={helpersId} className="repo-eyebrow">
+      <p id={helpersId} className="eyebrow repo-eyebrow">
         Testing helpers
       </p>
       <ul aria-labelledby={helpersId} className="repo-helpers">
@@ -71,7 +71,7 @@ function RepoSection() {
         ))}
       </ul>
 
-      <p className="repo-eyebrow">Strip the showcase</p>
+      <p className="eyebrow repo-eyebrow">Strip the showcase</p>
       <p className="repo-strip">
         Delete the <code>{STRIP_FOLDER}</code> folder, the <code>{STRIP_IMPORT}</code> import and
         the <code>{STRIP_LINE}</code> line in <code>{STRIP_FILE}</code>, then run{" "}

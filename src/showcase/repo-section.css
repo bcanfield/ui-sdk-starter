@@ -38,11 +38,6 @@
 
 .repo-eyebrow {
   margin-block: 1.25rem 0.5rem;
-  color: var(--fg-muted);
-  font-family: var(--ui-font-mono);
-  font-size: var(--size-eyebrow);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .repo-helpers {

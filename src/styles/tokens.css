@@ -26,6 +26,7 @@
   --font-display: "Geist Pixel", var(--ui-font-mono);
 
   --size-eyebrow: 10px;
+  --tracking-eyebrow: 0.1em;
   --size-meta: 11px;
   --size-control: 13px;
   --size-summary: 15px;

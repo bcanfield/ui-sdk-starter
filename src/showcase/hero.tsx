@@ -10,7 +10,7 @@ const SECTIONS = [
 function Hero() {
   return (
     <div className="hero">
-      <p className="hero-eyebrow">ui-sdk · {version}</p>
+      <p className="eyebrow hero-eyebrow">ui-sdk · {version}</p>
       <h1>Built for agents</h1>
       <p className="hero-lede">
         <span className="nowrap">ui-sdk</span> is a library of unstyled components with keyboard,

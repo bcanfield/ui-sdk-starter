@@ -5,7 +5,7 @@ function AgentTrace({
 }) {
   return (
     <div className="agent-trace" data-agent-trace aria-hidden="true" ref={traceRef}>
-      <span className="agent-trace-tag">agent</span>
+      <span className="eyebrow agent-trace-tag">agent</span>
     </div>
   )
 }
