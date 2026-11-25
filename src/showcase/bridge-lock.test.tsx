@@ -51,7 +51,7 @@ test("while the plan holds the bridge, Run step and Undo agent are disabled", as
   expect(undoButton()).toBeEnabled()
 })
 
-test("while an own step holds the bridge, Run, Step and Undo agent are disabled", async () => {
+test("while an own step holds the bridge, Run, Step, Reset and Undo agent are disabled", async () => {
   const { user } = renderRun()
   await stepTwice(user)
 
@@ -59,12 +59,15 @@ test("while an own step holds the bridge, Run, Step and Undo agent are disabled"
   const ask = await gate()
   expect(button("Run")).toBeDisabled()
   expect(button("Step")).toBeDisabled()
+  // An own step takes no signal, so Reset can't stop it.
+  expect(button("Reset")).toBeDisabled()
   expect(runStepButton()).toBeDisabled()
   expect(undoButton()).toBeDisabled()
 
   await user.click(within(ask).getByRole("button", { name: "Refuse" }))
   await until(() => expect(button("Run")).toBeEnabled())
   expect(button("Step")).toBeEnabled()
+  expect(button("Reset")).toBeEnabled()
   expect(undoButton()).toBeEnabled()
   expect(runStepButton()).toBeEnabled()
 })

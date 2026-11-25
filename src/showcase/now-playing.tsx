@@ -15,8 +15,8 @@ function PlayButtons({ player }: { player: PlanPlayer }) {
       <Button onClick={player.stop} disabled={!player.running}>
         Stop
       </Button>
-      {/* Undo takes no signal, so Reset waits rather than remount the pane under it. */}
-      <Button onClick={player.reset} disabled={player.lock.holder === "undo"}>
+      {/* Only the plan's run takes a signal; Reset waits on undo or an own step rather than remount the pane under it. */}
+      <Button onClick={player.reset} disabled={player.lock.busy && player.lock.holder !== "plan"}>
         Reset
       </Button>
     </>
