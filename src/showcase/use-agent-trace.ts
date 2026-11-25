@@ -39,9 +39,9 @@ function useAgentTrace(wrap: RefObject<HTMLElement | null>) {
   const place = useCallback(
     (target: string, { asking = false } = {}) => {
       last.current = target
-      // At narrow widths the confirm dialog sits at the bottom and the strip at the top, so the control it
-      // asks about goes to the middle, between them.
-      draw(asking ? "center" : "nearest")
+      // The confirm dialog sits mid-screen when wide and at the bottom when narrow, so the control it asks
+      // about goes to the top, below the sticky strip (the scroll margin in showcase.css), clear of both.
+      draw(asking ? "start" : "nearest")
     },
     [draw]
   )

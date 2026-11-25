@@ -15,6 +15,11 @@
   border: 1px solid var(--edge);
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
+
+  /* Clears the sticky strip (and the trace's tag) when the player scrolls a control into view. */
+  & [data-trace] {
+    scroll-margin-block-start: 5rem;
+  }
 }
 
 .fields {
@@ -179,13 +184,18 @@
   }
 }
 
+/* Two lines, always: Run, Step and Stop leave a narrow column at 390px, and one line cut most steps to two
+   words. The fixed height keeps the strip from growing when a step needs the second line. */
 .now-playing-say {
   grid-area: say;
+  display: -webkit-box;
+  height: calc(2lh);
   overflow: hidden;
   color: var(--fg-primary);
   font-size: var(--size-control);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .now-playing :is(.now-playing-say, .now-playing-status)[data-state="refused"] {

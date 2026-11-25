@@ -94,15 +94,15 @@ test("the step at the gate is marked waiting with the trace on its control, and 
   expect(agent.snapshot().find((entry) => entry.label === "Visibility")?.value).toBe("private")
 })
 
-test("when the gate opens, the control it asks about is brought to mid-screen, clear of the strip and the dialog", async () => {
+test("when the gate opens, the control it asks about is brought to the top, clear of the dialog", async () => {
   const { user, container } = renderRun()
   const field = container.querySelector<HTMLElement>('[data-trace="visibility"]')!
-  // jsdom lays nothing out: put Visibility low on a 390 × 844 screen, where a bottom-anchored dialog would sit.
+  // jsdom lays nothing out: put Visibility low on the screen, where a bottom-anchored dialog would sit.
   vi.spyOn(field, "getBoundingClientRect").mockReturnValue(new DOMRect(16, 760, 358, 70))
   const scrolled = vi.spyOn(field, "scrollIntoView")
   await press(user, "Run")
   await gate()
-  await until(() => expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ block: "center" })))
+  await until(() => expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ block: "start" })))
 })
 
 test("the trace is there only while a run goes: Stop and a single Step both take it away", async () => {
