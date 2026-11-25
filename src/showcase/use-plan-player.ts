@@ -206,10 +206,11 @@ function usePlanPlayer(
     active,
     running,
     tracing: running && active >= 0,
-    finished: next >= plan.length,
     result,
     paneKey,
-    lock,
+    blocked: next >= plan.length || lock.busy,
+    // Only the plan's run takes a signal; Reset waits on undo or an own step rather than remount the pane under it.
+    canReset: !lock.busy || lock.holder === "plan",
     run: () => lock.hold("plan", () => play(plan.length)),
     step: () => lock.hold("plan", () => play(1)),
     stop,

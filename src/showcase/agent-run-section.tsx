@@ -30,7 +30,13 @@ function AgentRunSection({ pacing = defaultPacing }: { pacing?: Pacing }) {
           <ProjectPane key={player.paneKey} />
           {player.tracing && <AgentTrace traceRef={trace.ref} />}
         </div>
-        <AgentConsole player={player} history={history} runGrid={runGrid} playHere={wide} />
+        <AgentConsole
+          player={player}
+          history={history}
+          lock={lock}
+          runGrid={runGrid}
+          playHere={wide}
+        />
       </div>
     </Section>
   )

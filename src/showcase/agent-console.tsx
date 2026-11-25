@@ -4,6 +4,7 @@ import { useState, type RefObject } from "react"
 import { PlayButtons } from "./now-playing.tsx"
 import { OwnStep } from "./own-step.tsx"
 import { callOf, plan, STEP_STATUS, TASK } from "./plan.ts"
+import type { BridgeLock } from "./use-bridge-lock.ts"
 import type { usePaneHistory } from "./use-pane-history.ts"
 import { usePaneSnapshot } from "./use-pane-snapshot.ts"
 import type { PlanPlayer } from "./use-plan-player.ts"
@@ -22,11 +23,13 @@ const fromTab = (tab: ConsoleTab) => (tab === "plan" ? null : tab)
 function AgentConsole({
   player,
   history,
+  lock,
   runGrid,
   playHere,
 }: {
   player: PlanPlayer
   history: ReturnType<typeof usePaneHistory>
+  lock: BridgeLock
   runGrid: RefObject<HTMLElement | null>
   playHere: boolean
 }) {
@@ -94,7 +97,7 @@ function AgentConsole({
           <output className="run-result" aria-label="Run result">
             {result}
           </output>
-          <OwnStep lock={player.lock} />
+          <OwnStep lock={lock} />
         </TabsPanel>
         <TabsPanel value="snapshot">
           <p className="console-task">What the agent sees on the pane, live.</p>

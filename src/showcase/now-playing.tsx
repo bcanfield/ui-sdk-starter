@@ -3,20 +3,18 @@ import { plan, STEP_STATUS, TASK } from "./plan.ts"
 import type { PlanPlayer } from "./use-plan-player.ts"
 
 function PlayButtons({ player }: { player: PlanPlayer }) {
-  const blocked = player.finished || player.lock.busy
   return (
     <>
-      <Button onClick={player.run} disabled={blocked}>
+      <Button onClick={player.run} disabled={player.blocked}>
         Run
       </Button>
-      <Button onClick={player.step} disabled={blocked}>
+      <Button onClick={player.step} disabled={player.blocked}>
         Step
       </Button>
       <Button onClick={player.stop} disabled={!player.running}>
         Stop
       </Button>
-      {/* Only the plan's run takes a signal; Reset waits on undo or an own step rather than remount the pane under it. */}
-      <Button onClick={player.reset} disabled={player.lock.busy && player.lock.holder !== "plan"}>
+      <Button onClick={player.reset} disabled={!player.canReset}>
         Reset
       </Button>
     </>
