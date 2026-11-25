@@ -21,10 +21,8 @@ import {
 } from "@ui-sdk/react/select"
 import { Switch, SwitchThumb } from "@ui-sdk/react/switch"
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
-import { LABELS, PANE_TABS, regions, visibilities } from "./pane-items.ts"
+import { LABELS, PANE_TABS, regions, visibilities, type Item } from "./pane-items.ts"
 import { ProjectMark } from "./project-mark/project-mark.tsx"
-
-type Item = { value: string; label: string }
 
 function SelectField({
   label,

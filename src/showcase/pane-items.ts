@@ -1,12 +1,14 @@
 import { MARKS } from "./project-mark/marks.ts"
 
-const regions = [
+type Item = { value: string; label: string }
+
+const regions: Item[] = [
   { value: "virginia", label: "Virginia" },
   { value: "frankfurt", label: "Frankfurt" },
   { value: "tokyo", label: "Tokyo" },
 ]
 
-const visibilities = [
+const visibilities: Item[] = [
   { value: "private", label: "Private" },
   { value: "internal", label: "Internal" },
   { value: "public", label: "Public" },
@@ -26,7 +28,7 @@ const LABELS = {
   notifications: "Notifications",
 } as const
 
-const itemsByControl: Record<string, { value: string; label: string }[]> = {
+const itemsByControl: Record<string, Item[]> = {
   [LABELS.region]: regions,
   [LABELS.visibility]: visibilities,
   [LABELS.mark]: MARKS,
@@ -39,4 +41,4 @@ function itemLabel(control: string, value: unknown) {
   return itemsByControl[control]?.find((item) => item.value === value)?.label
 }
 
-export { isTabSwitch, itemLabel, LABELS, PANE_TABS, regions, visibilities }
+export { isTabSwitch, itemLabel, LABELS, PANE_TABS, regions, visibilities, type Item }
