@@ -3,11 +3,12 @@ import { useEffect, useRef, useState, type RefObject } from "react"
 import { agent } from "../agent.ts"
 import { reducedMotion } from "./motion.ts"
 import { inPane } from "./pane-scope.ts"
-import { describeOutcome, describeRead, plan, type StepState } from "./plan.ts"
+import { controlOf, describeOutcome, describeRead, plan, type StepState } from "./plan.ts"
 
-type Row = { state: StepState; note?: string }
+type Row = { state: StepState; note?: string; refusedBy?: "person" }
 type Pacing = { leadIn: number; between: number }
 type Trace = { place: (target: string, options?: { asking?: boolean }) => void }
+type StepRun = { index: number; signal: AbortSignal; id: number }
 
 const defaultPacing: Pacing = { leadIn: 260, between: 700 }
 
@@ -31,7 +32,7 @@ const isConfirmOpen = () => overlays.entries().some((entry) => entry.type === "c
 function usePlanPlayer(
   pacing: Pacing,
   paneRoot: RefObject<HTMLElement | null>,
-  { trace, onReset }: { trace?: Trace; onReset?: () => void } = {}
+  { trace, onReset }: { trace: Trace; onReset: () => void }
 ) {
   const [rows, setRows] = useState(idleRows)
   const [next, setNext] = useState(0)
@@ -45,14 +46,15 @@ function usePlanPlayer(
     traceRef.current = trace
   })
   const nextRef = useRef(0)
-  const current = useRef(-1)
+  const runningIndex = useRef(-1)
+  const askedPerson = useRef(false)
   const abort = useRef<AbortController | null>(null)
   const runId = useRef(0)
-  const latest = useRef(rows)
+  const latestRows = useRef(rows)
 
   function updateRows(update: (all: Row[]) => Row[]) {
-    latest.current = update(latest.current)
-    setRows(latest.current)
+    latestRows.current = update(latestRows.current)
+    setRows(latestRows.current)
   }
 
   function setRow(index: number, row: Row) {
@@ -68,13 +70,14 @@ function usePlanPlayer(
   useEffect(() => {
     let frame = 0
     const stop = overlays.subscribe(() => {
-      const index = current.current
+      const index = runningIndex.current
       if (index < 0) return
       const state = isConfirmOpen() ? "waiting" : "running"
       // The bridge has just switched to the control's tab; place the trace once that has painted.
       if (state === "waiting") {
+        askedPerson.current = true
         cancelAnimationFrame(frame)
-        frame = requestAnimationFrame(() => traceRef.current?.place(plan[index]!.target, { asking: true }))
+        frame = requestAnimationFrame(() => traceRef.current.place(plan[index]!.target, { asking: true }))
       }
       updateRows((all) =>
         all.map((row, i) =>
@@ -97,50 +100,56 @@ function usePlanPlayer(
     []
   )
 
-  async function runStep(index: number, signal: AbortSignal, id: number) {
+  async function runStep(run: StepRun) {
+    const { index, signal } = run
     const step = plan[index]!
-    current.current = index
+    runningIndex.current = index
+    askedPerson.current = false
     setActive(index)
     setRow(index, { state: "running" })
-    traceRef.current?.place(step.target)
+    traceRef.current.place(step.target)
     await pause(reducedMotion() ? 0 : pacing.leadIn, signal)
-    if (signal.aborted) return stopped(index, id)
+    if (signal.aborted) return stopped(run)
 
     if (!step.steps) {
       const closed = await agent.query({ closed: true })
-      if (id !== runId.current) return false
-      if (signal.aborted) return stopped(index, id)
+      if (run.id !== runId.current) return false
+      if (signal.aborted) return stopped(run)
       setRow(index, {
         state: "done",
         note: describeRead(closed, agent.snapshot(), (entry) => inPane(paneRoot, entry)),
       })
-      return finish(index, id)
+      return finish(run)
     }
 
     const outcome = await agent.act({ steps: step.steps }, { signal })
-    if (id !== runId.current) return false
+    if (run.id !== runId.current) return false
     // A stop can land after the bridge applied the value; the row then says so, and the cursor moves past it.
     if (outcome.ok) {
-      traceRef.current?.place(step.target)
+      traceRef.current.place(step.target)
       setRow(index, { state: "done", note: describeOutcome(outcome) })
-      return finish(index, id)
+      return finish(run)
     }
-    if (signal.aborted) return stopped(index, id)
-    traceRef.current?.place(step.target)
-    setRow(index, { state: "refused", note: outcome.error?.message })
-    return finish(index, id)
+    if (signal.aborted) return stopped(run)
+    traceRef.current.place(step.target)
+    setRow(index, {
+      state: "refused",
+      note: outcome.error?.message,
+      refusedBy: askedPerson.current ? "person" : undefined,
+    })
+    return finish(run)
   }
 
-  function finish(index: number, id: number) {
+  function finish({ index, id }: StepRun) {
     if (id !== runId.current) return false
-    current.current = -1
+    runningIndex.current = -1
     advance(index + 1)
     return true
   }
 
-  function stopped(index: number, id: number) {
+  function stopped({ index, id }: StepRun) {
     if (id === runId.current) {
-      current.current = -1
+      runningIndex.current = -1
       setRow(index, { state: "idle", note: "Stopped before it applied." })
     }
     return false
@@ -157,14 +166,14 @@ function usePlanPlayer(
       // Reading time between steps, not motion, so it stays under reduced motion.
       if (played > 0) await pause(pacing.between, controller.signal)
       if (controller.signal.aborted) break
-      const ok = await runStep(nextRef.current, controller.signal, id)
+      const ok = await runStep({ index: nextRef.current, signal: controller.signal, id })
       if (!ok) break
       played++
     }
     if (id !== runId.current) return
     setRunning(false)
     abort.current = null
-    if (nextRef.current >= plan.length) setResult(summarise(latest.current))
+    if (nextRef.current >= plan.length) setResult(summarise(latestRows.current))
   }
 
   function stop() {
@@ -174,7 +183,7 @@ function usePlanPlayer(
   function reset() {
     stop()
     runId.current++
-    current.current = -1
+    runningIndex.current = -1
     abort.current = null
     advance(0)
     setActive(-1)
@@ -182,14 +191,13 @@ function usePlanPlayer(
     updateRows(idleRows)
     setResult("")
     setPaneKey((key) => key + 1)
-    onReset?.()
+    onReset()
   }
 
   return {
     rows,
     active,
     running,
-    // The trace exists only while a run is going, including while it waits at the gate.
     tracing: running && active >= 0,
     finished: next >= plan.length,
     result,
@@ -208,8 +216,8 @@ type PlanPlayer = ReturnType<typeof usePlanPlayer>
 
 function summarise(rows: Row[]) {
   const last = rows.at(-1)
-  if (last?.state === "refused" && last.note?.includes("said no")) {
-    return "You refused Visibility. The steps before it stay applied: nothing rolls back."
+  if (last?.state === "refused" && last.refusedBy === "person") {
+    return `You refused ${controlOf(plan.at(-1)!)}. The steps before it stay applied: nothing rolls back.`
   }
   const done = rows.filter((row) => row.state === "done").length
   const refused = rows.filter((row) => row.state === "refused").length

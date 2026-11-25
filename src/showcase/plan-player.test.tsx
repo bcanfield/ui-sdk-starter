@@ -129,6 +129,21 @@ test("Refuse at the gate: earlier values stay applied, and the console says so",
   )
 })
 
+test("the refusal summary comes from the gate, not the bridge's wording", async () => {
+  const { user } = renderRun()
+  const act = agent.act.bind(agent)
+  vi.spyOn(agent, "act").mockImplementation(async (...args) => {
+    const outcome = await act(...args)
+    return outcome.error ? { ...outcome, error: { ...outcome.error, message: "Nope." } } : outcome
+  })
+  const ask = await runToGate(user)
+  await user.click(within(ask).getByRole("button", { name: "Refuse" }))
+  await stateIs("Make Apollo public", "refused")
+  expect(screen.getByRole("status", { name: "Run result" })).toHaveTextContent(
+    "You refused Visibility. The steps before it stay applied: nothing rolls back."
+  )
+})
+
 test("at the gate the dialog holds the page, and Escape is the stop: it refuses the step", async () => {
   const { user } = renderRun()
   const ask = await runToGate(user)

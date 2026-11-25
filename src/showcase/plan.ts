@@ -63,6 +63,8 @@ const TASK = "Move Apollo to Frankfurt, scale it, give it a mark and make it pub
 
 const READ_CALL = "query({ closed: true })"
 
+const controlOf = (step: PlanStep) => step.steps?.[0]?.ref ?? step.say
+
 function callOf(step: PlanStep) {
   return step.steps ? `act(${JSON.stringify({ steps: step.steps })})` : READ_CALL
 }
@@ -101,4 +103,4 @@ function describeOutcome(outcome: { steps: { changes?: AgentChange[] }[] }) {
   return describeChanges(outcome.steps.flatMap((step) => step.changes ?? [])) || "Holds."
 }
 
-export { callOf, describeOutcome, describeRead, plan, STEP_STATUS, TASK, type StepState }
+export { callOf, controlOf, describeOutcome, describeRead, plan, STEP_STATUS, TASK, type StepState }
