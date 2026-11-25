@@ -25,7 +25,7 @@ html {
 }
 
 ::selection {
-  background-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  background-color: var(--accent-edge);
   color: var(--fg-primary);
 }
 
@@ -73,10 +73,10 @@ kbd {
     color var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
-    filter 0s linear 0.3s;
+    filter 0s linear var(--delay-pending-clear);
 
   &[data-pending] {
-    transition-delay: 0s, 0s, 0s, 0.15s;
+    transition-delay: 0s, 0s, 0s, var(--delay-pending);
   }
 }
 

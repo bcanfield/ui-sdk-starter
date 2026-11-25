@@ -17,9 +17,11 @@
   --warning: light-dark(#a34a07, #f59e0b);
   --danger: light-dark(#b91c1c, #ef4444);
   --info: light-dark(#1d4ed8, #3b82f6);
-  --glow: light-dark(#14763814, #22c55e1f);
+  --glow: light-dark(#1476381f, #22c55e1f);
 
   --edge-hover: color-mix(in srgb, var(--accent) 34%, var(--edge));
+  --accent-edge: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-tint: color-mix(in srgb, var(--accent) 10%, transparent);
 
   --font-display: "Geist Pixel", var(--ui-font-mono);
 
@@ -42,6 +44,10 @@
   --duration-popup: 180ms;
   --duration-panel: 240ms;
   --duration-enter: 250ms;
+  --duration-pulse: 1.2s;
+  --stagger-step: 40ms;
+  --delay-pending: 150ms;
+  --delay-pending-clear: 300ms;
 
   --ui-background: var(--surface);
   --ui-foreground: var(--fg-primary);

@@ -1,5 +1,12 @@
 import { describe, expect, test } from "vitest"
-import { auditTokens, missesReducedMotion, namedColorsInCode, namedColorsInCss, parseTokens } from "./style-rules"
+import {
+  auditTokens,
+  missesReducedMotion,
+  namedColorsInCode,
+  namedColorsInCss,
+  parseTokens,
+  rawTimes,
+} from "./style-rules"
 
 // Still unchecked: gradients, tints and text over them. The browser QA pass (light and dark at 390px) covers those.
 
@@ -47,6 +54,13 @@ test("stylesheets name the properties they transition and honour reduced motion"
     expect(text, `${path}: transition named properties`).not.toMatch(/transition(?:-property)?\s*:\s*all\b/)
     expect(text, `${path}: no !important`).not.toMatch(/!important/)
     expect(missesReducedMotion(text), `${path} animates without a prefers-reduced-motion block`).toBe(false)
+  }
+})
+
+test("durations and delays come from tokens", () => {
+  for (const [path, text] of Object.entries(css)) {
+    if (path === TOKENS) continue
+    expect(rawTimes(text), `${path} writes a time; add a token to ${TOKENS}`).toEqual([])
   }
 })
 
@@ -116,6 +130,17 @@ describe("rule fixtures", () => {
       )
     ).toBe(false)
     expect(missesReducedMotion("a { color: var(--duration-fast) }")).toBe(false)
+  })
+
+  test("motion times must be tokens, except 0s", () => {
+    expect(rawTimes("a { animation: pulse 1.2s ease infinite }")).toEqual(["animation: 1.2s"])
+    expect(rawTimes("a { animation-delay: 40ms }")).toEqual(["animation-delay: 40ms"])
+    expect(rawTimes("a { transition: filter 0s linear 0.3s }")).toEqual(["transition: 0.3s"])
+    expect(rawTimes("a { transition-delay: 0s, 0s, .15s }")).toEqual(["transition-delay: .15s"])
+    expect(rawTimes("a { transition-duration: 200ms; animation-duration: 2s }")).toHaveLength(2)
+    expect(rawTimes("a { transition: opacity var(--duration-fast) var(--ease-out), filter 0s linear 0ms }")).toEqual([])
+    expect(rawTimes("a { animation-delay: calc(var(--stagger-step) * 3) }")).toEqual([])
+    expect(rawTimes("a { width: 12rem; margin: 2s }")).toEqual([])
   })
 
   test("a colour token must be paired or exempt", () => {

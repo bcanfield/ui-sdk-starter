@@ -108,7 +108,7 @@
   }
 
   .step[data-state="waiting"] {
-    animation: gate-pulse 1.2s var(--ease-in-out) infinite alternate;
+    animation: gate-pulse var(--duration-pulse) var(--ease-in-out) infinite alternate;
   }
 }
 
@@ -358,8 +358,8 @@
 }
 
 .source-tag[data-source="agent"] {
-  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: var(--accent-edge);
+  background: var(--accent-tint);
   color: var(--accent);
 }
 
@@ -518,15 +518,15 @@
   }
 
   .hero > :nth-child(2) {
-    animation-delay: 40ms;
+    animation-delay: var(--stagger-step);
   }
 
   .hero > :nth-child(3) {
-    animation-delay: 80ms;
+    animation-delay: calc(var(--stagger-step) * 2);
   }
 
   .hero > :nth-child(4) {
-    animation-delay: 120ms;
+    animation-delay: calc(var(--stagger-step) * 3);
   }
 }
 

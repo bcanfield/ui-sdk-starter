@@ -39,6 +39,20 @@ export function missesReducedMotion(text: string) {
   return motion.test(text) && !text.includes("prefers-reduced-motion")
 }
 
+const motionDecl = /(?:^|[\s;{])((?:transition|animation)(?:-(?:duration|delay))?)\s*:\s*([^;{}]+)/gi
+const time = /(?<![\w.-])(\d*\.?\d+)(m?s)(?![\w-])/gi
+
+/** Literal times in transition/animation values, which belong in the token file. `0s` and `0ms` are allowed. */
+export function rawTimes(text: string) {
+  const found: string[] = []
+  for (const [, prop, value] of text.matchAll(motionDecl)) {
+    for (const [literal, amount] of value!.matchAll(time)) {
+      if (Number(amount) !== 0) found.push(`${prop}: ${literal}`)
+    }
+  }
+  return found
+}
+
 // --- Token file -----------------------------------------------------------
 
 export const EXEMPT_TOKENS: Record<string, string> = {
