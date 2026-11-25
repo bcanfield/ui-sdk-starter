@@ -42,7 +42,7 @@ test("the console says the agent is scripted and can't see it", () => {
 test("the console says one act per step is for watching, and a real agent sends the task in one act", () => {
   render(<App />)
   expect(screen.getByText(/its own act call so you can watch it/i)).toBeInTheDocument()
-  expect(screen.getByText(/beta\.17 docs say to plan the whole task and send it in one act call/i)).toBeInTheDocument()
+  expect(screen.getByText(/the ui-sdk docs say to plan the whole task and send it in one act call/i)).toBeInTheDocument()
 })
 
 test("?console= selects the console tab, and an unknown one falls back to Plan", () => {
