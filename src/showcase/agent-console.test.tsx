@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { afterEach, expect, test } from "vitest"
 import { agent } from "../agent.ts"
 import { App } from "../App.tsx"
@@ -49,4 +50,28 @@ test("?console= selects the console tab, and an unknown one falls back to Plan",
   window.history.replaceState(null, "", "/?console=nope")
   render(<App />)
   expect(screen.getByRole("tab", { name: "Plan" })).toHaveAttribute("aria-selected", "true")
+})
+
+test("switching tabs adds a history entry, the default tab leaves ?console off, and back and forward restore the tab", async () => {
+  const user = userEvent.setup()
+  const tab = (name: string) => screen.getByRole("tab", { name })
+  const param = () => new URL(window.location.href).searchParams.get("console")
+  const start = window.history.length
+  render(<App />)
+  expect(window.history.length).toBe(start)
+
+  await user.click(tab("Log"))
+  expect(param()).toBe("log")
+  await user.click(tab("Plan"))
+  expect(param()).toBeNull()
+  expect(window.history.length).toBe(start + 2)
+
+  window.history.back()
+  await waitFor(() => expect(tab("Log")).toHaveAttribute("aria-selected", "true"))
+  expect(param()).toBe("log")
+
+  window.history.forward()
+  await waitFor(() => expect(tab("Plan")).toHaveAttribute("aria-selected", "true"))
+  expect(param()).toBeNull()
+  expect(window.history.length).toBe(start + 2)
 })

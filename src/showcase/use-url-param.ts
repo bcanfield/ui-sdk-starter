@@ -20,7 +20,7 @@ function useUrlParam<T>(
     const raw = format(next)
     if (raw === null) url.searchParams.delete(name)
     else url.searchParams.set(name, raw)
-    window.history.replaceState(window.history.state, "", url)
+    if (url.href !== window.location.href) window.history.pushState(null, "", url)
     setValue(next)
   }
 

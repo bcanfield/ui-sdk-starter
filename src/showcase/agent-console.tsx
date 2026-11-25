@@ -17,7 +17,7 @@ const webMcpOffered = () =>
 type ConsoleTab = (typeof TABS)[number]
 
 const toTab = (raw: string | null): ConsoleTab => TABS.find((tab) => tab === raw) ?? "plan"
-const fromTab = (tab: ConsoleTab) => tab
+const fromTab = (tab: ConsoleTab) => (tab === "plan" ? null : tab)
 
 function AgentConsole({
   player,
