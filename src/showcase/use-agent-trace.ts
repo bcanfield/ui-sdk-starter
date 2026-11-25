@@ -9,9 +9,8 @@ function resolve(wrap: HTMLElement, target: string) {
   return wrap.querySelector<HTMLElement>(`[data-trace="tab:${panel.dataset.tracePanel}"]`) ?? element
 }
 
-// The box moves only when the player places it, never on the bridge's own tab switches: mid-step the bridge
-// opens closed tabs and puts them back while it searches, and following that bounced the box or left it
-// over the control that shares the target's spot on the other tab.
+// The box moves only when the player places it: mid-step the bridge flips tabs while it searches, and
+// following those switches bounced the box or left it on the other tab's control in the same spot.
 function useAgentTrace(wrap: RefObject<HTMLElement | null>) {
   const box = useRef<HTMLElement | null>(null)
   const last = useRef<string | null>(null)

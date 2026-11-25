@@ -29,9 +29,8 @@ function renderRun({ query = "", pacing = instant }: { query?: string; pacing?: 
   return { user, container, leave }
 }
 
-// Waits until `check` passes, looking again after the DOM changes. A run is real bridge and React work whose
-// length grows with machine load, so a fixed window here measures the machine, not the page. The wait has
-// no deadline of its own: the test timeout catches a hang, and then the last failed check is printed.
+// Waits until `check` passes, with no deadline of its own: a run's length grows with machine load, so the
+// test timeout catches a hang instead, and then the last failed check is printed.
 function until<T>(check: () => T): Promise<T> {
   return getConfig().asyncWrapper(
     () =>
