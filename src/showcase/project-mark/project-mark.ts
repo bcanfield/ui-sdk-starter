@@ -222,4 +222,4 @@ const projectMark = definePrimitive({
   agent: { actions: ["setValue"], closed: true, items: (api) => api.allItems() },
 })
 
-export { COLUMNS, projectMark, type MarkItem, type ProjectMarkOptions }
+export { projectMark, type ProjectMarkOptions }

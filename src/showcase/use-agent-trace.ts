@@ -1,4 +1,5 @@
 import { useCallback, useRef, type RefObject } from "react"
+import { reducedMotion } from "./motion.ts"
 
 // A target is a `data-trace` key in the pane. One on a panel that isn't selected resolves to that panel's tab.
 function resolve(wrap: HTMLElement, target: string) {
@@ -8,9 +9,6 @@ function resolve(wrap: HTMLElement, target: string) {
   return wrap.querySelector<HTMLElement>(`[data-trace="tab:${panel.dataset.tracePanel}"]`) ?? element
 }
 
-const reducedMotion = () =>
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
-
 // The box moves only when the player places it, never on the bridge's own tab switches: mid-step the bridge
 // opens closed tabs and puts them back while it searches, and following that bounced the box or left it
 // over the control that shares the target's spot on the other tab.
@@ -18,7 +16,7 @@ function useAgentTrace(wrap: RefObject<HTMLElement | null>) {
   const box = useRef<HTMLElement | null>(null)
   const last = useRef<string | null>(null)
 
-  const draw = useCallback((scroll = true) => {
+  const draw = useCallback((scroll: ScrollLogicalPosition | false = "nearest") => {
     const trace = box.current
     const root = wrap.current
     if (!trace || !root || !last.current) return
@@ -34,14 +32,16 @@ function useAgentTrace(wrap: RefObject<HTMLElement | null>) {
     // The bridge doesn't scroll a control that is already partly on screen, so it can sit under the sticky
     // strip. Bring it clear only while the visitor is watching the pane; never pull them off the plan.
     if (scroll && to.bottom > 0 && to.top < window.innerHeight) {
-      target.scrollIntoView({ block: "nearest", behavior: reducedMotion() ? "instant" : "smooth" })
+      target.scrollIntoView({ block: scroll, behavior: reducedMotion() ? "instant" : "smooth" })
     }
   }, [wrap])
 
   const place = useCallback(
-    (target: string) => {
+    (target: string, { asking = false } = {}) => {
       last.current = target
-      draw()
+      // The confirm dialog sits mid-screen when wide and at the bottom when narrow, so the control it asks
+      // about goes to the top, below the sticky strip (the scroll margin in showcase.css), clear of both.
+      draw(asking ? "start" : "nearest")
     },
     [draw]
   )

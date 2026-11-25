@@ -3,7 +3,7 @@ import { Field, FieldLabel } from "@ui-sdk/react/field"
 import { Textarea } from "@ui-sdk/react/textarea"
 import { useState } from "react"
 import { agent } from "../agent.ts"
-import { describeChanges } from "./plan.ts"
+import { describeOutcome } from "./plan.ts"
 
 const example = JSON.stringify(
   { steps: [{ ref: "Project name", action: "setValue", args: ["Apollo Edge"] }] },
@@ -15,7 +15,7 @@ type Act = Parameters<typeof agent.act>[0]
 
 function OwnStep({ disabled }: { disabled: boolean }) {
   const [text, setText] = useState(example)
-  const [result, setResult] = useState("")
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
   const [busy, setBusy] = useState(false)
 
   async function run() {
@@ -23,19 +23,21 @@ function OwnStep({ disabled }: { disabled: boolean }) {
     try {
       call = JSON.parse(text)
     } catch (error) {
-      setResult(`JSON parse error: ${error instanceof Error ? error.message : String(error)}`)
+      setResult({
+        ok: false,
+        text: `JSON parse error: ${error instanceof Error ? error.message : String(error)}`,
+      })
       return
     }
     setBusy(true)
-    setResult("")
+    setResult(null)
     const outcome = await agent.act(call as Act)
     setBusy(false)
-    if (outcome.ok) {
-      const changes = describeChanges(outcome.steps.flatMap((s) => s.changes ?? []))
-      setResult(`ok: ${changes || "Holds."}`)
-    } else {
-      setResult(`error: ${outcome.error?.message}`)
-    }
+    setResult(
+      outcome.ok
+        ? { ok: true, text: `ok: ${describeOutcome(outcome)}` }
+        : { ok: false, text: `error: ${outcome.error?.message}` }
+    )
   }
 
   return (
@@ -54,8 +56,12 @@ function OwnStep({ disabled }: { disabled: boolean }) {
         <Button onClick={run} disabled={disabled || busy}>
           Run step
         </Button>
-        <output className="run-result own-step-result" aria-label="Own step result">
-          {result}
+        <output
+          className="run-result own-step-result"
+          aria-label="Own step result"
+          data-state={result ? (result.ok ? "ok" : "error") : undefined}
+        >
+          {result?.text}
         </output>
       </div>
     </div>

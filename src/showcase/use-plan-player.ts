@@ -1,13 +1,13 @@
 import { overlays } from "@ui-sdk/react/overlays"
 import { useEffect, useRef, useState, type RefObject } from "react"
 import { agent } from "../agent.ts"
+import { reducedMotion } from "./motion.ts"
 import { inPane } from "./pane-scope.ts"
-import { describeChanges, describeRead, plan } from "./plan.ts"
+import { describeOutcome, describeRead, plan, type StepState } from "./plan.ts"
 
-type StepState = "idle" | "running" | "waiting" | "done" | "refused"
 type Row = { state: StepState; note?: string }
 type Pacing = { leadIn: number; between: number }
-type Trace = { place: (target: string) => void }
+type Trace = { place: (target: string, options?: { asking?: boolean }) => void }
 
 const defaultPacing: Pacing = { leadIn: 260, between: 700 }
 
@@ -26,15 +26,12 @@ function pause(ms: number, signal: AbortSignal) {
   })
 }
 
-const reducedMotion = () =>
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
-
 const isConfirmOpen = () => overlays.entries().some((entry) => entry.type === "confirm")
 
 function usePlanPlayer(
   pacing: Pacing,
   paneRoot: RefObject<HTMLElement | null>,
-  trace?: Trace
+  { trace, onReset }: { trace?: Trace; onReset?: () => void } = {}
 ) {
   const [rows, setRows] = useState(idleRows)
   const [next, setNext] = useState(0)
@@ -67,22 +64,35 @@ function usePlanPlayer(
   }
 
   // The shell's bridge asks through `confirm()`; its overlay entry is how the player knows a step waits on a person.
-  useEffect(
-    () =>
-      overlays.subscribe(() => {
-        const index = current.current
-        if (index < 0) return
-        const state = isConfirmOpen() ? "waiting" : "running"
-        // The bridge has just switched to the control's tab; place the trace once that has painted.
-        if (state === "waiting") {
-          requestAnimationFrame(() => traceRef.current?.place(plan[index]!.target))
-        }
-        updateRows((all) =>
-          all.map((row, i) =>
-            i === index && (row.state === "running" || row.state === "waiting") ? { state } : row
-          )
+  useEffect(() => {
+    let frame = 0
+    const stop = overlays.subscribe(() => {
+      const index = current.current
+      if (index < 0) return
+      const state = isConfirmOpen() ? "waiting" : "running"
+      // The bridge has just switched to the control's tab; place the trace once that has painted.
+      if (state === "waiting") {
+        cancelAnimationFrame(frame)
+        frame = requestAnimationFrame(() => traceRef.current?.place(plan[index]!.target, { asking: true }))
+      }
+      updateRows((all) =>
+        all.map((row, i) =>
+          i === index && (row.state === "running" || row.state === "waiting") ? { state } : row
         )
-      }),
+      )
+    })
+    return () => {
+      stop()
+      cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  // Leaving mid-run aborts the step, which also closes a pending confirm and frees the bridge's queue.
+  useEffect(
+    () => () => {
+      abort.current?.abort()
+      runId.current++
+    },
     []
   )
 
@@ -98,23 +108,24 @@ function usePlanPlayer(
     if (!step.steps) {
       const closed = await agent.query({ closed: true })
       if (id !== runId.current) return false
-      setRow(index, { state: "done", note: describeRead(closed, agent.snapshot(), (entry) =>
-          inPane(paneRoot, entry)
-        ),
+      setRow(index, {
+        state: "done",
+        note: describeRead(closed, agent.snapshot(), (entry) => inPane(paneRoot, entry)),
       })
       return finish(index, id)
     }
 
     const outcome = await agent.act({ steps: step.steps }, { signal })
     if (id !== runId.current) return false
+    // A stop can land after the bridge applied the value; the row then says so, and the cursor moves past it.
+    if (outcome.ok) {
+      traceRef.current?.place(step.target)
+      setRow(index, { state: "done", note: describeOutcome(outcome) })
+      return finish(index, id)
+    }
     if (signal.aborted) return stopped(index, id)
     traceRef.current?.place(step.target)
-    if (outcome.ok) {
-      const changes = describeChanges(outcome.steps.flatMap((s) => s.changes ?? []))
-      setRow(index, { state: "done", note: changes || "Holds." })
-    } else {
-      setRow(index, { state: "refused", note: outcome.error?.message })
-    }
+    setRow(index, { state: "refused", note: outcome.error?.message })
     return finish(index, id)
   }
 
@@ -141,6 +152,7 @@ function usePlanPlayer(
     setResult("")
     let played = 0
     while (played < steps && nextRef.current < plan.length && !controller.signal.aborted) {
+      // Reading time between steps, not motion, so it stays under reduced motion.
       if (played > 0) await pause(pacing.between, controller.signal)
       if (controller.signal.aborted) break
       const ok = await runStep(nextRef.current, controller.signal, id)
@@ -168,12 +180,15 @@ function usePlanPlayer(
     updateRows(idleRows)
     setResult("")
     setPaneKey((key) => key + 1)
+    onReset?.()
   }
 
   return {
     rows,
     active,
     running,
+    // The trace exists only while a run is going, including while it waits at the gate.
+    tracing: running && active >= 0,
     finished: next >= plan.length,
     result,
     paneKey,
@@ -183,6 +198,8 @@ function usePlanPlayer(
     reset,
   }
 }
+
+type PlanPlayer = ReturnType<typeof usePlanPlayer>
 
 function summarise(rows: Row[]) {
   const last = rows.at(-1)
@@ -194,4 +211,4 @@ function summarise(rows: Row[]) {
   return `Run finished: ${done} steps done, ${refused} refused.`
 }
 
-export { defaultPacing, usePlanPlayer, type Pacing, type StepState }
+export { defaultPacing, usePlanPlayer, type Pacing, type PlanPlayer }

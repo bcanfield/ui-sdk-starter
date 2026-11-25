@@ -1,9 +1,10 @@
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { expect, test } from "vitest"
 import { agent } from "../agent.ts"
 import { App } from "../App.tsx"
 import pkg from "../../package.json"
+import { gate, gateClosed, until } from "./run-kit.tsx"
 
 const SENTENCE = "Changes who can see Apollo"
 const setVisibility = (value: string, signal?: AbortSignal) =>
@@ -16,6 +17,12 @@ test("the hero holds the page's only h1", () => {
   render(<App />)
   expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1)
   expect(screen.getByRole("heading", { level: 1, name: "Built for agents" })).toBeInTheDocument()
+})
+
+test("the hero's first sentence says what ui-sdk is", () => {
+  render(<App />)
+  const lede = screen.getByRole("heading", { level: 1 }).nextElementSibling
+  expect(lede?.textContent).toMatch(/^ui-sdk is [^.]+components[^.]+\./)
 })
 
 test("the eyebrow names the @ui-sdk/react version pinned in package.json", () => {
@@ -62,19 +69,16 @@ test("an agent's risky step needs a person: refused on no, runs on yes", async (
   const visibility = () => screen.getByRole("combobox", { name: "Visibility" })
 
   const refused = setVisibility("public")
-  const ask = await screen.findByRole("alertdialog", {
-    name: "Let the agent continue?",
-  })
+  const ask = await gate()
   expect(ask).toHaveAccessibleDescription(SENTENCE)
   await user.click(screen.getByRole("button", { name: "Refuse" }))
   expect((await refused).error?.message).toMatch(/The person said no to/)
   expect(visibility()).toHaveTextContent("Private")
 
   const allowed = setVisibility("public")
-  await screen.findByRole("alertdialog", { name: "Let the agent continue?" })
-  await user.click(screen.getByRole("button", { name: "Allow" }))
+  await user.click(within(await gate()).getByRole("button", { name: "Allow" }))
   expect((await allowed).ok).toBe(true)
-  await waitFor(() => expect(visibility()).toHaveTextContent("Public"))
+  await until(() => expect(visibility()).toHaveTextContent("Public"))
 })
 
 test("aborting a step closes the prompt waiting on the person", async () => {
@@ -82,13 +86,11 @@ test("aborting a step closes the prompt waiting on the person", async () => {
   const controller = new AbortController()
 
   const run = setVisibility("public", controller.signal)
-  await screen.findByRole("alertdialog", { name: "Let the agent continue?" })
+  await gate()
 
   controller.abort()
 
-  await waitFor(() =>
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
-  )
+  await gateClosed()
   expect((await run).ok).toBe(false)
   expect(screen.getByRole("combobox", { name: "Visibility" })).toHaveTextContent(
     "Private"

@@ -13,8 +13,9 @@ function Hero() {
       <p className="hero-eyebrow">ui-sdk · {version}</p>
       <h1>Built for agents</h1>
       <p className="hero-lede">
-        Watch a scripted agent drive real <span className="nowrap">ui-sdk</span> controls, change
-        anything yourself, then undo only what the agent did.
+        <span className="nowrap">ui-sdk</span> is a library of unstyled components with keyboard,
+        focus and ARIA built in, which an agent can use the way a person does. Watch one fill in
+        the pane below, then undo only what it did.
       </p>
       <nav className="pills" aria-label="Sections">
         {SECTIONS.map((section) => (

@@ -3,10 +3,10 @@ import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
 import { useEffect, useState, type RefObject } from "react"
 import { PlayButtons } from "./now-playing.tsx"
 import { OwnStep } from "./own-step.tsx"
-import { callOf, plan, TASK } from "./plan.ts"
+import { callOf, plan, STEP_STATUS, TASK } from "./plan.ts"
 import type { usePaneHistory } from "./use-pane-history.ts"
 import { usePaneSnapshot } from "./use-pane-snapshot.ts"
-import type { usePlanPlayer } from "./use-plan-player.ts"
+import type { PlanPlayer } from "./use-plan-player.ts"
 
 const TABS = ["plan", "snapshot", "log"] as const
 
@@ -43,7 +43,7 @@ function AgentConsole({
   paneRoot,
   playHere,
 }: {
-  player: ReturnType<typeof usePlanPlayer>
+  player: PlanPlayer
   history: ReturnType<typeof usePaneHistory>
   paneRoot: RefObject<HTMLElement | null>
   playHere: boolean
@@ -63,16 +63,14 @@ function AgentConsole({
         </span>
         <div className="player">
           {playHere && <PlayButtons player={player} />}
-          <Button onClick={player.stop} disabled={!running}>
-            Stop
-          </Button>
           <Button onClick={player.reset}>Reset</Button>
         </div>
       </div>
       <p className="console-note">
-        The agent can't see or press this console. It is scripted: a written plan, no
-        model, through the real bridge and confirm gate. Each step is its own act call,
-        so a refused step shows on its own and the run goes on.
+        The agent can't see or press this console. It's scripted: a written plan, no
+        model, sent through the real bridge and the real confirm dialog. Each step is its
+        own act call, so when one is refused the run carries on with the next. While the
+        dialog is asking, it holds the page: Refuse or Esc is how you stop there.
       </p>
       {import.meta.env.DEV && (
         <p className="console-note">
@@ -102,7 +100,7 @@ function AgentConsole({
                     {row.note && <span className="step-note">{row.note}</span>}
                   </div>
                   <span className="step-state" data-testid="step-state">
-                    {row.state}
+                    {STEP_STATUS[row.state]}
                   </span>
                 </li>
               )

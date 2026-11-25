@@ -4,6 +4,16 @@ import type { AgentChange, AgentComponent, AgentStep } from "@ui-sdk/react/agent
 // `target` keys the agent trace's anchor. A step with no `steps` is the read step.
 type PlanStep = { say: string; target: string; steps?: AgentStep[] }
 
+type StepState = "idle" | "running" | "waiting" | "done" | "refused"
+
+const STEP_STATUS: Record<StepState, string> = {
+  idle: "ready",
+  running: "running",
+  waiting: "needs you",
+  done: "done",
+  refused: "refused",
+}
+
 // Args send values, not labels: a label on a confirm-marked select asks the person twice.
 const plan: PlanStep[] = [
   { say: "Read the page", target: "pane" },
@@ -87,4 +97,8 @@ function describeChanges(changes: AgentChange[]) {
     .join(", ")
 }
 
-export { callOf, describeChanges, describeRead, plan, TASK, type PlanStep }
+function describeOutcome(outcome: { steps: { changes?: AgentChange[] }[] }) {
+  return describeChanges(outcome.steps.flatMap((step) => step.changes ?? [])) || "Holds."
+}
+
+export { callOf, describeOutcome, describeRead, plan, STEP_STATUS, TASK, type StepState }

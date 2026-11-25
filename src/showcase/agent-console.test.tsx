@@ -27,7 +27,7 @@ test("the agent can't press Run", async () => {
   expect(result.ok).toBe(false)
   expect(result.error?.message).toMatch(/Run/)
   expect(screen.getAllByTestId("step-state").map((s) => s.textContent)).toEqual(
-    Array(9).fill("idle")
+    Array(9).fill("ready")
   )
 })
 
@@ -36,6 +36,7 @@ test("the console says the agent is scripted and can't see it", () => {
   expect(screen.getByText(/scripted: a written plan, no model/i)).toBeInTheDocument()
   expect(screen.getByText(/each step is its own act call/i)).toBeInTheDocument()
   expect(screen.getByText(/agent can't see or press this console/i)).toBeInTheDocument()
+  expect(screen.getByText(/Refuse or Esc is how you stop there\./)).toBeInTheDocument()
 })
 
 test("?console= selects the console tab, and an unknown one falls back to Plan", () => {
