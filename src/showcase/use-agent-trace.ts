@@ -28,9 +28,9 @@ function useAgentTrace(wrap: RefObject<HTMLElement | null>) {
     trace.style.setProperty("--trace-w", `${to.width}px`)
     trace.style.setProperty("--trace-h", `${to.height}px`)
     trace.dataset.target = target.dataset.trace
-    // The bridge doesn't scroll a control that is already partly on screen, so it can sit under the sticky
-    // strip. Bring it clear only while the visitor is watching the pane; never pull them off the plan.
-    if (scroll && to.bottom > 0 && to.top < window.innerHeight) {
+    // At the gate the asked control is always scrolled in, even from off screen; other steps only when
+    // partly on screen, so the strip can't cover them and a reader isn't pulled off the plan.
+    if (scroll === "start" || (scroll && to.bottom > 0 && to.top < window.innerHeight)) {
       target.scrollIntoView({ block: scroll, behavior: reducedMotion() ? "instant" : "smooth" })
     }
   }, [wrap])

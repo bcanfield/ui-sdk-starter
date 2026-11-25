@@ -105,6 +105,27 @@ test("when the gate opens, the control it asks about is brought to the top, clea
   await until(() => expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ block: "start" })))
 })
 
+test("at the gate the control is brought to the top even when it is fully off screen", async () => {
+  const { user, container } = renderRun()
+  const field = container.querySelector<HTMLElement>('[data-trace="visibility"]')!
+  vi.spyOn(field, "getBoundingClientRect").mockReturnValue(new DOMRect(16, -900, 358, 70))
+  const scrolled = vi.spyOn(field, "scrollIntoView")
+  await press(user, "Run")
+  await gate()
+  await until(() => expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ block: "start" })))
+})
+
+test("an ordinary step whose control is fully off screen does not pull the visitor to it", async () => {
+  const { user, container } = renderRun()
+  const field = container.querySelector<HTMLElement>('[data-trace="name"]')!
+  vi.spyOn(field, "getBoundingClientRect").mockReturnValue(new DOMRect(16, -900, 358, 70))
+  const scrolled = vi.spyOn(field, "scrollIntoView")
+  await press(user, "Run")
+  await gate()
+  await until(() => expect(trace(container)).toHaveAttribute("data-target", "visibility"))
+  expect(scrolled).not.toHaveBeenCalled()
+})
+
 test("the trace is there only while a run goes: Stop and a single Step both take it away", async () => {
   const { user, container } = renderRun({ pacing: { leadIn: 0, between: 60_000 } })
   await press(user, "Run")
