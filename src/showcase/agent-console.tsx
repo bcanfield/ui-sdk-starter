@@ -67,9 +67,10 @@ function AgentConsole({
         </div>
       </div>
       <p className="console-note">
-        The agent can't see or press this console. It is scripted: a written plan, no
-        model, through the real bridge and confirm gate. Each step is its own act call,
-        so a refused step shows on its own and the run goes on.
+        The agent can't see or press this console. It's scripted: a written plan, no
+        model, sent through the real bridge and the real confirm dialog. Each step is its
+        own act call, so when one is refused the run carries on with the next. While the
+        dialog is asking, it holds the page: Refuse or Esc is how you stop there.
       </p>
       {import.meta.env.DEV && (
         <p className="console-note">

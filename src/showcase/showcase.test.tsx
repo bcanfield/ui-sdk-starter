@@ -19,6 +19,12 @@ test("the hero holds the page's only h1", () => {
   expect(screen.getByRole("heading", { level: 1, name: "Built for agents" })).toBeInTheDocument()
 })
 
+test("the hero's first sentence says what ui-sdk is", () => {
+  render(<App />)
+  const lede = screen.getByRole("heading", { level: 1 }).nextElementSibling
+  expect(lede?.textContent).toMatch(/^ui-sdk is [^.]+components[^.]+\./)
+})
+
 test("the eyebrow names the @ui-sdk/react version pinned in package.json", () => {
   render(<App />)
   const pinned = pkg.dependencies["@ui-sdk/react"]

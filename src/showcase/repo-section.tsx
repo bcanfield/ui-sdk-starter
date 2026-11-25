@@ -37,9 +37,10 @@ function RepoSection() {
   return (
     <Section id="repo" title="In the repo" caption="the real test file · read at build">
       <p className="section-lede">
-        This is the test for the project pane above. It drives the page through
-        the same agent bridge the run uses, and it is read from the real file
-        when the page builds.
+        This is the project pane&apos;s own test, read from the file when the page
+        builds. It drives the pane through the same agent bridge the run uses, then
+        opens General again to check nothing was lost while the agent was on the
+        other tab.
       </p>
 
       <figure className="repo-figure">

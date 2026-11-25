@@ -36,6 +36,7 @@ test("the console says the agent is scripted and can't see it", () => {
   expect(screen.getByText(/scripted: a written plan, no model/i)).toBeInTheDocument()
   expect(screen.getByText(/each step is its own act call/i)).toBeInTheDocument()
   expect(screen.getByText(/agent can't see or press this console/i)).toBeInTheDocument()
+  expect(screen.getByText(/Refuse or Esc is how you stop there\./)).toBeInTheDocument()
 })
 
 test("?console= selects the console tab, and an unknown one falls back to Plan", () => {
