@@ -15,10 +15,8 @@ function useBridgeLock() {
     try {
       await task()
     } finally {
-      if (current.current === who) {
-        current.current = null
-        setHolder(null)
-      }
+      current.current = null
+      setHolder(null)
     }
   }
 
