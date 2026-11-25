@@ -52,26 +52,38 @@ test("?console= selects the console tab, and an unknown one falls back to Plan",
   expect(screen.getByRole("tab", { name: "Plan" })).toHaveAttribute("aria-selected", "true")
 })
 
-test("switching tabs adds a history entry, the default tab leaves ?console off, and back and forward restore the tab", async () => {
+const tab = (name: string) => screen.getByRole("tab", { name })
+const param = () => new URL(window.location.href).searchParams.get("console")
+
+test("switching tabs, by arrow keys too, rewrites ?console in place, and the default tab leaves it off", async () => {
   const user = userEvent.setup()
-  const tab = (name: string) => screen.getByRole("tab", { name })
-  const param = () => new URL(window.location.href).searchParams.get("console")
+  window.history.replaceState({ kept: true }, "", "/")
   const start = window.history.length
   render(<App />)
-  expect(window.history.length).toBe(start)
 
   await user.click(tab("Log"))
   expect(param()).toBe("log")
+  // Tabs activate on focus, so each arrow press is a switch.
+  await user.keyboard("{ArrowLeft}")
+  expect(tab("Snapshot")).toHaveAttribute("aria-selected", "true")
+  expect(param()).toBe("snapshot")
+  await user.keyboard("{ArrowLeft}")
+  expect(tab("Plan")).toHaveAttribute("aria-selected", "true")
+  expect(param()).toBeNull()
+
+  expect(window.history.length).toBe(start)
+  expect(window.history.state).toEqual({ kept: true })
+})
+
+test("back to an entry an in-page link left behind restores the tab it was on", async () => {
+  const user = userEvent.setup()
+  render(<App />)
+  await user.click(tab("Log"))
+  await user.click(screen.getByRole("link", { name: "built from core" }))
   await user.click(tab("Plan"))
   expect(param()).toBeNull()
-  expect(window.history.length).toBe(start + 2)
 
   window.history.back()
   await waitFor(() => expect(tab("Log")).toHaveAttribute("aria-selected", "true"))
   expect(param()).toBe("log")
-
-  window.history.forward()
-  await waitFor(() => expect(tab("Plan")).toHaveAttribute("aria-selected", "true"))
-  expect(param()).toBeNull()
-  expect(window.history.length).toBe(start + 2)
 })

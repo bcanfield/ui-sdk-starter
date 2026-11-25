@@ -78,12 +78,5 @@ test("the direction toggle flips the section and writes ?dir to the URL", async 
   await user.click(screen.getByRole("button", { name: "Right to left" }))
   expect(section()).not.toHaveAttribute("dir", "rtl")
   expect(new URL(window.location.href).searchParams.has("dir")).toBe(false)
-  expect(window.history.length).toBe(start + 2)
-})
-
-test("back and forward restore the direction", async () => {
-  render(<CoreSection />)
-  window.history.pushState(null, "", "/?dir=rtl")
-  window.dispatchEvent(new PopStateEvent("popstate"))
-  expect(await screen.findByRole("region", { name: "Built from core" })).toHaveAttribute("dir", "rtl")
+  expect(window.history.length).toBe(start)
 })

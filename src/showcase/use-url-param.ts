@@ -9,6 +9,7 @@ function useUrlParam<T>(
 ) {
   const [value, setValue] = useState(() => parse(paramOf(name)))
 
+  // An in-page link pushes an entry that keeps the param as it was then; going back to it restores that.
   useEffect(() => {
     const restore = () => setValue(parse(paramOf(name)))
     window.addEventListener("popstate", restore)
@@ -20,7 +21,8 @@ function useUrlParam<T>(
     const raw = format(next)
     if (raw === null) url.searchParams.delete(name)
     else url.searchParams.set(name, raw)
-    if (url.href !== window.location.href) window.history.pushState(null, "", url)
+    // Tabs switch on arrow-key focus, so a push per switch would bury the page under history entries.
+    if (url.href !== window.location.href) window.history.replaceState(window.history.state, "", url)
     setValue(next)
   }
 
