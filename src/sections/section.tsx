@@ -1,20 +1,25 @@
-import { useId, type ReactNode } from "react"
+import { useId, type ComponentPropsWithoutRef, type ReactNode } from "react"
 
-type SectionProps = {
+type SectionProps = Omit<
+  ComponentPropsWithoutRef<"section">,
+  "title" | "aria-labelledby" | "aria-describedby"
+> & {
   title: string
   caption: string
   children: ReactNode
 }
 
-function Section({ title, caption, children }: SectionProps) {
+function Section({ title, caption, children, ...props }: SectionProps) {
   const headingId = useId()
   const captionId = useId()
   return (
-    <section aria-labelledby={headingId} aria-describedby={captionId}>
-      <h2 id={headingId}>{title}</h2>
-      <p id={captionId} className="caption">
-        {caption}
-      </p>
+    <section {...props} aria-labelledby={headingId} aria-describedby={captionId}>
+      <div className="section-head">
+        <h2 id={headingId}>{title}</h2>
+        <p id={captionId} className="section-sub">
+          {caption}
+        </p>
+      </div>
       {children}
     </section>
   )

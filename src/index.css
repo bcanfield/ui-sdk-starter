@@ -1,41 +1,258 @@
 @layer ui-sdk;
 
+@import "./styles/tokens.css";
+
+[data-color-scheme="light"] {
+  color-scheme: light;
+}
+
+[data-color-scheme="dark"] {
+  color-scheme: dark;
+}
+
+html {
+  background-color: var(--surface);
+  font-synthesis: none;
+  scrollbar-gutter: stable;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:where(a, .skip-link):focus-visible {
+  /* ui-sdk's own parts style their focus ring in its layer; this covers only what it doesn't. */
+  outline: 2px solid var(--ui-ring);
+  outline-offset: 2px;
+}
+
+::selection {
+  background-color: var(--accent-edge);
+  color: var(--fg-primary);
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  line-height: 1.05;
+}
+
+h2 {
+  line-height: 1.25;
+}
+
+:where(
+  [data-slot="button"],
+  [data-slot="toggle"],
+  [data-slot="select-trigger"],
+  [data-slot="segmented-control-item"],
+  [data-slot="alert-dialog-trigger"],
+  [data-slot="alert-dialog-close"],
+  kbd
+) {
+  font-family: var(--ui-font-mono);
+}
+
+kbd {
+  border-color: var(--edge);
+  color: var(--fg-muted);
+  font-size: var(--size-eyebrow);
+}
+
+:where(
+  [data-slot="button"],
+  [data-slot="toggle"],
+  [data-slot="alert-dialog-trigger"],
+  [data-slot="alert-dialog-close"]
+) {
+  /* Unlayered, this replaces web.css's delayed pending filter, so it is restated here. */
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    filter 0s linear var(--delay-pending-clear);
+
+  &[data-pending] {
+    transition-delay: 0s, 0s, 0s, var(--delay-pending);
+  }
+}
+
+:where(
+  [data-slot="popover-content"],
+  [data-slot="menu-content"],
+  [data-slot="select-content"],
+  [data-slot="tooltip-content"],
+  [data-slot="hover-card-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="dialog-content"]
+) {
+  transform-origin: var(--transform-origin);
+  transition: opacity var(--duration-popup) var(--ease-out);
+
+  &:is([data-starting-style], [data-ending-style]) {
+    opacity: 0;
+  }
+
+  &[data-ending-style] {
+    transition-duration: calc(var(--duration-popup) * 0.7);
+  }
+}
+
+[data-slot="tooltip-content"][data-instant] {
+  transition: none;
+}
+
+/* OverlayHost's confirm puts its two buttons in a bare div, so they touched. */
+[data-slot="alert-dialog-content"] > div:has(> [data-slot="alert-dialog-close"]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* On a phone a centred dialog covers the middle of the page, where the control it asks about usually is.
+   Anchored to the bottom, it leaves that control readable and puts its buttons under the thumb. */
+@media (max-width: 40rem) {
+  [data-slot="alert-dialog-content"] {
+    margin-block: auto max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  z-index: 100;
+  translate: 0 -120%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--ui-radius);
+  background: var(--surface-card);
+  color: var(--fg-primary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-control);
+}
+
+.skip-link:focus {
+  translate: 0 0.75rem;
+}
+
+#content {
+  scroll-margin-top: 1rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :where([data-slot="button"], [data-slot="toggle"]):active:not([data-disabled]) {
+    scale: 0.97;
+  }
+
+  :where(
+    [data-slot="popover-content"],
+    [data-slot="menu-content"],
+    [data-slot="select-content"],
+    [data-slot="tooltip-content"],
+    [data-slot="hover-card-content"]
+  ) {
+    transition-property: opacity, scale;
+
+    &:is([data-starting-style], [data-ending-style]) {
+      scale: 0.97;
+    }
+  }
+
+  :where([data-slot="alert-dialog-content"], [data-slot="dialog-content"]) {
+    transition-property: opacity, scale;
+
+    &:is([data-starting-style], [data-ending-style]) {
+      scale: 0.98;
+    }
+  }
+
+  .skip-link {
+    transition: translate var(--duration-fast) var(--ease-out);
+  }
+
+}
+
 body {
   margin: 0;
-  background: var(--ui-background);
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 0%, var(--glow), transparent 70%) top / 100% 30rem
+      no-repeat,
+    var(--ui-background);
   color: var(--ui-foreground);
   font-family: var(--ui-font-sans);
 }
 
 main {
-  max-width: 40rem;
+  max-width: var(--width-prose);
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 0 1rem 2rem;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: var(--width-wide);
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+
+  & [data-slot="field"] {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  & [data-slot="field-label"] {
+    color: var(--fg-muted);
+    font-family: var(--ui-font-mono);
+    font-size: var(--size-meta);
+  }
+}
+
+@media (min-width: 40rem) {
+  .topbar {
+    padding-inline: 1.5rem;
+  }
+}
+
+.brand {
+  color: var(--fg-primary);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
 }
 
 section {
-  margin-block: 2rem;
+  margin-block: 2.5rem;
 }
 
-.caption {
-  color: var(--ui-muted-foreground);
-}
-
-.row {
+.section-head {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-block: 0.5rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-block-end: 1rem;
+  padding-block-end: 0.625rem;
+  border-bottom: 1px solid var(--edge);
+
+  & h2 {
+    margin: 0;
+    color: var(--fg-primary);
+    font-size: 1.25rem;
+  }
 }
 
-form {
-  display: grid;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.inline {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
+.section-sub {
+  min-width: 0;
+  margin: 0;
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+  text-align: end;
 }

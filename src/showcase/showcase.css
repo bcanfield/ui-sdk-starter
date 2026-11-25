@@ -1,0 +1,572 @@
+.section-lede {
+  color: var(--fg-secondary);
+  line-height: 1.6;
+}
+
+.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pane {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+
+  /* Clears the sticky strip (and the trace's tag) when the player scrolls a control into view. */
+  & [data-trace] {
+    scroll-margin-block-start: 7rem;
+  }
+}
+
+.fields {
+  display: grid;
+  align-content: start;
+  gap: 0.875rem;
+  min-height: 17rem;
+  padding-top: 0.75rem;
+}
+
+.fields [data-slot="field"]:not(.inline),
+.fields [data-slot="number-input"] {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.fields [data-slot="field-label"] {
+  color: var(--fg-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-control);
+}
+
+.fields :is([data-slot="input"], [data-slot="select-trigger"], [data-slot="password-input"]) {
+  width: 100%;
+  max-width: none;
+}
+
+.run-grid {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* 56rem is also WIDE in use-wide.ts, which moves Run, Step, Stop and Reset between the strip and the console. */
+@media (min-width: 56rem) {
+  #agent-run {
+    --run-width: min(var(--width-wide), calc(100vw - 4rem));
+    width: var(--run-width);
+    margin-inline: calc((100% - var(--run-width)) / 2);
+    margin-block-start: 1.25rem;
+  }
+
+  .run-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  }
+}
+
+@media (max-width: 55.99rem) {
+  /* Scrolling a control into view, by the trace or the bridge, leaves it and the AGENT tag clear of the strip. */
+  .pane,
+  .pane * {
+    scroll-margin-top: 4.5rem;
+  }
+}
+
+.pane-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.agent-trace {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: calc(var(--trace-w) + 8px);
+  height: calc(var(--trace-h) + 8px);
+  translate: calc(var(--trace-x) - 4px) calc(var(--trace-y) - 4px);
+  border: 2px solid var(--accent);
+  border-radius: calc(var(--ui-radius) + 4px);
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+.agent-trace-tag {
+  position: absolute;
+  top: -0.625rem;
+  inset-inline-end: 0.5rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--surface);
+  line-height: 1.4;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The one element allowed to animate width and height: scaling a bordered box would distort its 2px border. */
+  .agent-trace {
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      translate var(--duration-panel) var(--ease-in-out),
+      width var(--duration-panel) var(--ease-in-out),
+      height var(--duration-panel) var(--ease-in-out);
+  }
+
+  .step[data-state="waiting"] {
+    animation: gate-pulse var(--duration-pulse) var(--ease-in-out) infinite alternate;
+  }
+}
+
+@keyframes gate-pulse {
+  from {
+    box-shadow:
+      inset 2px 0 0 var(--accent),
+      0 0 0 0 color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+
+  to {
+    box-shadow:
+      inset 2px 0 0 var(--accent),
+      0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+}
+
+.now-playing {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  /* A fixed first track: sized to its content, it followed the status word and slid the narration sideways. */
+  grid-template-columns: 4.75rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    "count . buttons"
+    "status . buttons"
+    "say say say";
+  column-gap: 0.75rem;
+  align-items: center;
+  min-width: 0;
+  margin: 0 -1rem 0.75rem;
+  padding: 0.5rem 1rem;
+  border: 0;
+  border-bottom: 1px solid var(--edge);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.now-playing-count {
+  grid-area: count;
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.now-playing-status {
+  grid-area: status;
+  &:is([data-state="running"], [data-state="waiting"]) {
+    color: var(--accent);
+  }
+}
+
+/* Its own row: four buttons beside it left two letters at 390px. The fixed two-line height keeps the strip
+   from growing when the task needs the second line. */
+.now-playing-say {
+  grid-area: say;
+  margin-top: 0.375rem;
+  display: -webkit-box;
+  height: calc(2lh);
+  overflow: hidden;
+  color: var(--fg-primary);
+  font-size: var(--size-control);
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.now-playing :is(.now-playing-say, .now-playing-status)[data-state="refused"] {
+  color: var(--danger);
+}
+
+.now-playing-buttons {
+  grid-area: buttons;
+  display: flex;
+  gap: 0.375rem;
+}
+
+.console {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-lg);
+}
+
+.console-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* Zero specificity, so a tag that also sets its own colour or margin wins wherever it's declared. */
+:where(.eyebrow) {
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-eyebrow);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+.player {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.console-note {
+  margin: 0;
+  color: var(--fg-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.console code,
+.console-note code {
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+}
+
+.console-task {
+  margin: 0.75rem 0 0.25rem;
+  color: var(--fg-primary);
+  font-size: var(--size-summary);
+}
+
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.625rem 0.5rem;
+  border-bottom: 1px solid var(--edge-subtle);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &[data-state="waiting"] {
+    border-radius: var(--radius-md);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+}
+
+.step-number {
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.step-body {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.step-say {
+  color: var(--fg-primary);
+  font-size: 0.875rem;
+}
+
+.step-call {
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
+}
+
+.step-note {
+  color: var(--fg-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+  overflow-wrap: anywhere;
+}
+
+.step:is([data-state="running"], [data-state="waiting"]) .step-state {
+  color: var(--accent);
+}
+
+.step[data-state="refused"] :is(.step-state, .step-note) {
+  color: var(--danger);
+}
+
+.run-result {
+  display: block;
+  min-height: 1.6em;
+  color: var(--fg-secondary);
+  font-size: 0.875rem;
+}
+
+.log {
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.log-entry {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: baseline;
+  padding-block: 0.5rem;
+  border-bottom: 1px solid var(--edge-subtle);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .log-entry {
+    animation: log-enter var(--duration-enter) var(--ease-out);
+  }
+}
+
+@keyframes log-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.source-tag {
+  justify-self: start;
+  padding: 0.0625rem 0.375rem;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  color: var(--fg-secondary);
+}
+
+.source-tag[data-source="agent"] {
+  border-color: var(--accent-edge);
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.log-text {
+  min-width: 0;
+  color: var(--fg-primary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+  overflow-wrap: anywhere;
+}
+
+.log-entry[data-reverted] .log-text {
+  color: var(--fg-muted);
+  text-decoration: line-through;
+}
+
+.log-empty {
+  margin: 0.5rem 0 0;
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+}
+
+.log-actions {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+  margin-top: 0.75rem;
+}
+
+.webmcp-badge {
+  display: inline-flex;
+  gap: 0.375rem;
+  align-items: baseline;
+  color: var(--fg-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+}
+
+.webmcp-badge[data-offered="true"] {
+  color: var(--accent);
+}
+
+.own-step {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--edge-subtle);
+}
+
+.own-step-input {
+  width: 100%;
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+}
+
+.own-step-result {
+  overflow-wrap: anywhere;
+
+  &[data-state="error"] {
+    color: var(--danger);
+  }
+}
+
+.snapshot-block {
+  max-height: 24rem;
+  margin: 0;
+  padding: 0.75rem;
+  overflow: auto;
+  border: 1px solid var(--edge-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--fg-primary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+  line-height: 1.5;
+  scrollbar-width: thin;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 2.5rem 1.5rem;
+  text-align: center;
+
+  & h1 {
+    margin: 0;
+    color: var(--fg-primary);
+    font-size: var(--size-hero);
+  }
+}
+
+/* Wide, Run and the whole General tab stay above the fold at 1280×800. */
+@media (min-width: 56rem) {
+  .hero {
+    gap: 0.5rem;
+    padding-block: 1.25rem 0.5rem;
+  }
+}
+
+.hero-eyebrow {
+  margin: 0;
+}
+
+.hero-lede {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--fg-secondary);
+  line-height: 1.6;
+  text-wrap: balance;
+
+  & .nowrap {
+    white-space: nowrap;
+  }
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: calc(var(--ui-spacing) * 8);
+  padding-inline: 0.875rem;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--fg-secondary);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-control);
+  text-decoration: none;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+
+  &:hover {
+    border-color: var(--edge-hover);
+    background: var(--surface-hover);
+    color: var(--fg-primary);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero > * {
+    animation: hero-enter var(--duration-enter) var(--ease-out) backwards;
+  }
+
+  .hero > :nth-child(2) {
+    animation-delay: var(--stagger-step);
+  }
+
+  .hero > :nth-child(3) {
+    animation-delay: calc(var(--stagger-step) * 2);
+  }
+
+  .hero > :nth-child(4) {
+    animation-delay: calc(var(--stagger-step) * 3);
+  }
+}
+
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.site-footer {
+  display: grid;
+  gap: 0.375rem;
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--edge);
+  color: var(--fg-muted);
+  font-family: var(--ui-font-mono);
+  font-size: var(--size-meta);
+}
+
+.site-footer-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  margin: 0;
+}
+
+.site-footer-item {
+  display: inline-flex;
+  gap: 0.5rem;
+
+  & a {
+    color: var(--fg-secondary);
+    text-decoration: none;
+  }
+
+  & a:hover {
+    color: var(--fg-primary);
+  }
+}

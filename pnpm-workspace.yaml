@@ -1,0 +1,6 @@
+# Temporary, user-authorised exception to pnpm's release-age policy (2026-11-24)
+# so the ui-sdk beta.17 bump can land before its 1-day window passes.
+# These two entries can be removed after 2026-11-25T17:16Z. Add nothing else here.
+minimumReleaseAgeExclude:
+  - "@ui-sdk/core@0.1.0-beta.17"
+  - "@ui-sdk/react@0.1.0-beta.17"

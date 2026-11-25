@@ -1,0 +1,67 @@
+:root {
+  --surface: light-dark(#ffffff, #000000);
+  --surface-raised: light-dark(#f8f8fa, #0a0a0a);
+  --surface-card: light-dark(#f0f0f3, #111111);
+  --surface-hover: light-dark(#e6e6ea, #181818);
+
+  --edge: light-dark(#d1d1d6, #222222);
+  --edge-subtle: light-dark(#e0e0e4, #1a1a1a);
+  --edge-control: light-dark(#80808a, #63636d);
+
+  --fg-primary: light-dark(#18181b, #ededef);
+  --fg-secondary: light-dark(#52525b, #a1a1aa);
+  --fg-muted: light-dark(#63636b, #84848e);
+
+  --accent: light-dark(#147638, #22c55e);
+  --ok: light-dark(#147638, #22c55e);
+  --warning: light-dark(#a34a07, #f59e0b);
+  --danger: light-dark(#b91c1c, #ef4444);
+  --info: light-dark(#1d4ed8, #3b82f6);
+  --glow: light-dark(#1476381f, #22c55e1f);
+
+  --edge-hover: color-mix(in srgb, var(--accent) 34%, var(--edge));
+  --accent-edge: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-tint: color-mix(in srgb, var(--accent) 10%, transparent);
+
+  --font-display: "Geist Pixel", var(--ui-font-mono);
+
+  --size-eyebrow: 10px;
+  --tracking-eyebrow: 0.1em;
+  --size-meta: 11px;
+  --size-control: 13px;
+  --size-summary: 15px;
+  --size-hero: clamp(2.25rem, 7vw, 3.75rem);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+
+  --width-prose: 40rem;
+  --width-wide: 64rem;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 150ms;
+  --duration-popup: 180ms;
+  --duration-panel: 240ms;
+  --duration-enter: 250ms;
+  --duration-pulse: 1.2s;
+  --stagger-step: 40ms;
+  --delay-pending: 150ms;
+  --delay-pending-clear: 300ms;
+
+  --ui-background: var(--surface);
+  --ui-foreground: var(--fg-primary);
+  --ui-muted: var(--surface-hover);
+  --ui-muted-foreground: var(--fg-muted);
+  --ui-border: var(--edge);
+  --ui-input: var(--edge-control);
+  --ui-primary: var(--accent);
+  --ui-primary-foreground: var(--surface);
+  --ui-destructive: var(--danger);
+  --ui-ring: var(--accent);
+  --ui-ring-border: var(--accent);
+  --ui-radius: 0.5rem;
+  --ui-font-sans: "Geist Variable", system-ui, sans-serif;
+  --ui-font-mono: "Geist Mono Variable", ui-monospace, monospace;
+}
