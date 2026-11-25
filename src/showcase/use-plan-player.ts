@@ -1,6 +1,6 @@
 import { overlays } from "@ui-sdk/react/overlays"
 import { useEffect, useRef, useState, type RefObject } from "react"
-import { agent } from "../agent.ts"
+import { agent, onAnswer } from "../agent.ts"
 import { reducedMotion } from "./motion.ts"
 import { inPane } from "./pane-scope.ts"
 import { controlOf, describeOutcome, describeRead, plan, type StepState } from "./plan.ts"
@@ -47,7 +47,7 @@ function usePlanPlayer(
   })
   const nextRef = useRef(0)
   const runningIndex = useRef(-1)
-  const askedPerson = useRef(false)
+  const personSaidNo = useRef(false)
   const abort = useRef<AbortController | null>(null)
   const runId = useRef(0)
   const latestRows = useRef(rows)
@@ -75,7 +75,6 @@ function usePlanPlayer(
       const state = isConfirmOpen() ? "waiting" : "running"
       // The bridge has just switched to the control's tab; place the trace once that has painted.
       if (state === "waiting") {
-        askedPerson.current = true
         cancelAnimationFrame(frame)
         frame = requestAnimationFrame(() => traceRef.current.place(plan[index]!.target, { asking: true }))
       }
@@ -91,6 +90,14 @@ function usePlanPlayer(
     }
   }, [])
 
+  useEffect(
+    () =>
+      onAnswer(({ allowed }) => {
+        if (runningIndex.current >= 0 && !allowed) personSaidNo.current = true
+      }),
+    []
+  )
+
   // Leaving mid-run aborts the step, which also closes a pending confirm and frees the bridge's queue.
   useEffect(
     () => () => {
@@ -104,7 +111,7 @@ function usePlanPlayer(
     const { index, signal } = run
     const step = plan[index]!
     runningIndex.current = index
-    askedPerson.current = false
+    personSaidNo.current = false
     setActive(index)
     setRow(index, { state: "running" })
     traceRef.current.place(step.target)
@@ -135,7 +142,7 @@ function usePlanPlayer(
     setRow(index, {
       state: "refused",
       note: outcome.error?.message,
-      refusedBy: askedPerson.current ? "person" : undefined,
+      refusedBy: personSaidNo.current ? "person" : undefined,
     })
     return finish(run)
   }

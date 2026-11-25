@@ -4,7 +4,7 @@ import { confirm } from "@ui-sdk/react/alert-dialog"
 import { Button } from "@ui-sdk/react/button"
 import { useState } from "react"
 import { expect, test } from "vitest"
-import { agent, askPerson } from "./agent.ts"
+import { agent, askPerson, onAnswer, type Answer } from "./agent.ts"
 import { App } from "./App.tsx"
 
 const ASK = "Let the agent continue?"
@@ -45,6 +45,30 @@ test("aborting an act's signal while its confirm is open closes the dialog and p
   await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull())
   expect((await run).ok).toBe(false)
   expect(screen.getByRole("status", { name: "Erase result" })).toBeEmptyDOMElement()
+})
+
+test("onAnswer reports the person's Refuse, and not an abort that closed the ask", async () => {
+  const user = userEvent.setup()
+  renderShell()
+  const answers: Answer[] = []
+  const stop = onAnswer((answer) => answers.push(answer))
+  const press = (signal?: AbortSignal) =>
+    agent.act({ steps: [{ ref: "Erase drafts", action: "press" }] }, { signal })
+
+  const controller = new AbortController()
+  const aborted = press(controller.signal)
+  await screen.findByRole("alertdialog", { name: ASK })
+  controller.abort()
+  await aborted
+  await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull())
+  expect(answers).toEqual([])
+
+  const refused = press()
+  const ask = await screen.findByRole("alertdialog", { name: ASK })
+  await user.click(within(ask).getByRole("button", { name: "Refuse" }))
+  await refused
+  stop()
+  expect(answers).toEqual([{ confirm: "Erases every saved draft", allowed: false }])
 })
 
 test("a settled ask stops listening to its signal, so a later abort can't close another dialog", async () => {

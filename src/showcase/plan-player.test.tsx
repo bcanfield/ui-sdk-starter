@@ -144,6 +144,27 @@ test("the refusal summary comes from the gate, not the bridge's wording", async 
   )
 })
 
+test("Allow at the gate, then a different refusal: the summary doesn't say you refused", async () => {
+  const { user } = renderRun()
+  const act = agent.act.bind(agent)
+  // The gated step also asks for 12 replicas, so the bridge refuses it after the person allowed.
+  vi.spyOn(agent, "act").mockImplementation((call, options) =>
+    act(
+      call.steps.some((s) => s.ref === "Visibility")
+        ? { steps: [...call.steps, { ref: "Replicas", action: "setValue", args: [12] }] }
+        : call,
+      options
+    )
+  )
+  const ask = await runToGate(user)
+  await user.click(within(ask).getByRole("button", { name: "Allow" }))
+  await stateIs("Make Apollo public", "refused")
+  expect(row("Make Apollo public")).toHaveTextContent(/takes a number from 1 to 10, not 12/)
+  const result = screen.getByRole("status", { name: "Run result" })
+  await until(() => expect(result).not.toBeEmptyDOMElement())
+  expect(result).toHaveTextContent("Run finished: 7 steps done, 2 refused.")
+})
+
 test("at the gate the dialog holds the page, and Escape is the stop: it refuses the step", async () => {
   const { user } = renderRun()
   const ask = await runToGate(user)

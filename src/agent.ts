@@ -2,18 +2,33 @@ import { confirm } from "@ui-sdk/react/alert-dialog"
 import { createAgent, registerTools } from "@ui-sdk/react/agent"
 
 type Allow = NonNullable<NonNullable<Parameters<typeof createAgent>[0]>["allow"]>
+type Answer = { confirm: string; allowed: boolean }
+
+const answerListeners = new Set<(answer: Answer) => void>()
+
+// Only the person's own Allow or Refuse is reported: an abort or timeout also closes the ask with no.
+function onAnswer(listener: (answer: Answer) => void) {
+  answerListeners.add(listener)
+  return () => {
+    answerListeners.delete(listener)
+  }
+}
 
 const askPerson: Allow = async (step, { signal }) => {
   if (!step.confirm) return true
   const close = () => confirm.controller.close()
   signal.addEventListener("abort", close, { once: true })
   try {
-    return await confirm({
+    const allowed = await confirm({
       title: "Let the agent continue?",
       description: step.confirm,
       confirmLabel: "Allow",
       cancelLabel: "Refuse",
     })
+    if (!signal.aborted) {
+      for (const listener of answerListeners) listener({ confirm: step.confirm, allowed })
+    }
+    return allowed
   } finally {
     signal.removeEventListener("abort", close)
   }
@@ -32,4 +47,4 @@ if (import.meta.hot) {
   import.meta.hot.dispose(unregister)
 }
 
-export { agent, askPerson }
+export { agent, askPerson, onAnswer, type Answer }
