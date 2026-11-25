@@ -10,11 +10,11 @@ import { useWide } from "./use-wide.ts"
 import { defaultPacing, usePlanPlayer, type Pacing } from "./use-plan-player.ts"
 
 function AgentRunSection({ pacing = defaultPacing }: { pacing?: Pacing }) {
-  const grid = useRef<HTMLDivElement>(null)
+  const runGrid = useRef<HTMLDivElement>(null)
   const paneWrap = useRef<HTMLDivElement>(null)
   const trace = useAgentTrace(paneWrap)
-  const history = usePaneHistory(grid)
-  const player = usePlanPlayer(pacing, grid, { trace, onReset: history.clear })
+  const history = usePaneHistory(runGrid)
+  const player = usePlanPlayer(pacing, runGrid, { trace, onReset: history.clear })
   const wide = useWide()
   return (
     <Section
@@ -23,12 +23,12 @@ function AgentRunSection({ pacing = defaultPacing }: { pacing?: Pacing }) {
       caption="scripted · no model · the real bridge"
     >
       {!wide && <NowPlaying player={player} />}
-      <div className="run-grid" ref={grid}>
+      <div className="run-grid" ref={runGrid}>
         <div className="pane-wrap" ref={paneWrap}>
           <ProjectPane key={player.paneKey} />
           {player.tracing && <AgentTrace traceRef={trace.ref} />}
         </div>
-        <AgentConsole player={player} history={history} paneRoot={grid} playHere={wide} />
+        <AgentConsole player={player} history={history} runGrid={runGrid} playHere={wide} />
       </div>
     </Section>
   )

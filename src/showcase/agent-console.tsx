@@ -40,17 +40,17 @@ function useConsoleTab() {
 function AgentConsole({
   player,
   history,
-  paneRoot,
+  runGrid,
   playHere,
 }: {
   player: PlanPlayer
   history: ReturnType<typeof usePaneHistory>
-  paneRoot: RefObject<HTMLElement | null>
+  runGrid: RefObject<HTMLElement | null>
   playHere: boolean
 }) {
   const [tab, selectTab] = useConsoleTab()
   const [offered] = useState(webMcpOffered)
-  const snapshot = usePaneSnapshot(paneRoot, player.paneKey, tab === "snapshot")
+  const snapshot = usePaneSnapshot(runGrid, player.paneKey, tab === "snapshot")
   const { rows, running, result } = player
 
   return (

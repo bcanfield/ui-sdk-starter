@@ -31,7 +31,7 @@ const isConfirmOpen = () => overlays.entries().some((entry) => entry.type === "c
 
 function usePlanPlayer(
   pacing: Pacing,
-  paneRoot: RefObject<HTMLElement | null>,
+  runGrid: RefObject<HTMLElement | null>,
   { trace, onReset }: { trace: Trace; onReset: () => void }
 ) {
   const [rows, setRows] = useState(idleRows)
@@ -117,7 +117,7 @@ function usePlanPlayer(
       if (signal.aborted) return stopped(run)
       setRow(index, {
         state: "done",
-        note: describeRead(closed, agent.snapshot(), (entry) => inPane(paneRoot, entry)),
+        note: describeRead(closed, agent.snapshot(), (entry) => inPane(runGrid, entry)),
       })
       return finish(run)
     }

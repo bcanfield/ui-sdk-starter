@@ -2,6 +2,7 @@ import { createHistory, type HistoryEntry } from "@ui-sdk/react/history"
 import { useEffect, useRef, useState, type RefObject } from "react"
 import { agent } from "../agent.ts"
 import { itemLabel, PANE_TABS } from "./pane-items.ts"
+import { paneIn } from "./pane-scope.ts"
 
 type LogEntry = { id: string; source: "agent" | "you"; text: string; reverted: boolean }
 type Missed = { ref: string; key: string }
@@ -36,7 +37,7 @@ function describeMissed(missed: Missed[], entries: readonly HistoryEntry[]) {
 // Tab switches are the bridge reaching behind a closed tab, not edits a person made or the plan asked for.
 const isTabSwitch = (entry: HistoryEntry) => entry.label === PANE_TABS
 
-function usePaneHistory(paneRoot: RefObject<HTMLElement | null>) {
+function usePaneHistory(runGrid: RefObject<HTMLElement | null>) {
   const history = useRef<ReturnType<typeof createHistory> | null>(null)
   const [entries, setEntries] = useState<readonly HistoryEntry[]>([])
   const [undoing, setUndoing] = useState(false)
@@ -45,7 +46,7 @@ function usePaneHistory(paneRoot: RefObject<HTMLElement | null>) {
 
   useEffect(() => {
     const recorder = createHistory(agent, {
-      within: () => paneRoot.current?.querySelector("[data-pane]"),
+      within: () => paneIn(runGrid),
     })
     history.current = recorder
     const stop = recorder.subscribe(() => setEntries([...recorder.entries()]))
@@ -54,7 +55,7 @@ function usePaneHistory(paneRoot: RefObject<HTMLElement | null>) {
       recorder.destroy()
       history.current = null
     }
-  }, [paneRoot])
+  }, [runGrid])
 
   function clear() {
     generation.current++
