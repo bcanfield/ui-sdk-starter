@@ -1,9 +1,10 @@
 import { Tabs, TabsIndicator, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
 import { Toggle } from "@ui-sdk/react/toggle"
-import { useEffect, useId, useState } from "react"
+import { useId } from "react"
 import { Section } from "../sections/section.tsx"
 import { sourceFile } from "./links.ts"
 import { ProjectMark } from "./project-mark/project-mark.tsx"
+import { useUrlParam } from "./use-url-param.ts"
 import "./core-section.css"
 
 const MARK_SOURCE = sourceFile("src/showcase/project-mark/project-mark.ts")
@@ -23,26 +24,12 @@ const RANGES = [
   { value: "month", label: "Month", note: "30 daily buckets." },
 ]
 
-function readRtl() {
-  return new URLSearchParams(window.location.search).get("dir") === "rtl"
-}
-
-function writeRtl(rtl: boolean) {
-  const url = new URL(window.location.href)
-  if (rtl) url.searchParams.set("dir", "rtl")
-  else url.searchParams.delete("dir")
-  window.history.replaceState(window.history.state, "", url)
-}
+const toRtl = (raw: string | null) => raw === "rtl"
+const fromRtl = (rtl: boolean) => (rtl ? "rtl" : null)
 
 function CoreSection() {
   const legendId = useId()
-  const [rtl, setRtl] = useState(readRtl)
-
-  useEffect(() => {
-    const restore = () => setRtl(readRtl())
-    window.addEventListener("popstate", restore)
-    return () => window.removeEventListener("popstate", restore)
-  }, [])
+  const [rtl, setRtl] = useUrlParam("dir", toRtl, fromRtl)
 
   return (
     <Section
@@ -81,10 +68,7 @@ function CoreSection() {
       <div className="core-meta">
         <Toggle
           pressed={rtl}
-          onPressedChange={(pressed) => {
-            setRtl(pressed)
-            writeRtl(pressed)
-          }}
+          onPressedChange={setRtl}
         >
           Right to left
         </Toggle>

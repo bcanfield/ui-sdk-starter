@@ -1,12 +1,13 @@
 import { Button } from "@ui-sdk/react/button"
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs"
-import { useEffect, useState, type RefObject } from "react"
+import { useState, type RefObject } from "react"
 import { PlayButtons } from "./now-playing.tsx"
 import { OwnStep } from "./own-step.tsx"
 import { callOf, plan, STEP_STATUS, TASK } from "./plan.ts"
 import type { usePaneHistory } from "./use-pane-history.ts"
 import { usePaneSnapshot } from "./use-pane-snapshot.ts"
 import type { PlanPlayer } from "./use-plan-player.ts"
+import { useUrlParam } from "./use-url-param.ts"
 
 const TABS = ["plan", "snapshot", "log"] as const
 
@@ -15,27 +16,8 @@ const webMcpOffered = () =>
   typeof (document as WebMcpHost).modelContext?.registerTool === "function"
 type ConsoleTab = (typeof TABS)[number]
 
-function tabFromUrl(): ConsoleTab {
-  const wanted = new URLSearchParams(window.location.search).get("console")
-  return TABS.find((tab) => tab === wanted) ?? "plan"
-}
-
-function useConsoleTab() {
-  const [tab, setTab] = useState(tabFromUrl)
-  useEffect(() => {
-    const onPop = () => setTab(tabFromUrl())
-    window.addEventListener("popstate", onPop)
-    return () => window.removeEventListener("popstate", onPop)
-  }, [])
-  function select(value: string) {
-    const next = TABS.find((t) => t === value) ?? "plan"
-    const url = new URL(window.location.href)
-    url.searchParams.set("console", next)
-    window.history.replaceState(window.history.state, "", url)
-    setTab(next)
-  }
-  return [tab, select] as const
-}
+const toTab = (raw: string | null): ConsoleTab => TABS.find((tab) => tab === raw) ?? "plan"
+const fromTab = (tab: ConsoleTab) => tab
 
 function AgentConsole({
   player,
@@ -48,7 +30,7 @@ function AgentConsole({
   runGrid: RefObject<HTMLElement | null>
   playHere: boolean
 }) {
-  const [tab, selectTab] = useConsoleTab()
+  const [tab, selectTab] = useUrlParam("console", toTab, fromTab)
   const [offered] = useState(webMcpOffered)
   const snapshot = usePaneSnapshot(runGrid, player.paneKey, tab === "snapshot")
   const { rows, running, result } = player
@@ -78,7 +60,7 @@ function AgentConsole({
           <code>agent.snapshot()</code> in the browser console.
         </p>
       )}
-      <Tabs value={tab} onValueChange={(value) => selectTab(String(value))}>
+      <Tabs value={tab} onValueChange={(value) => selectTab(toTab(String(value)))}>
         <TabsList aria-label="Console">
           <TabsTab value="plan">Plan</TabsTab>
           <TabsTab value="snapshot">Snapshot</TabsTab>
