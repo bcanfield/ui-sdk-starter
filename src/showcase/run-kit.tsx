@@ -29,7 +29,7 @@ function renderRun({ query = "", pacing = instant }: { query?: string; pacing?: 
   return { user, container, leave }
 }
 
-// Waits until `check` passes, re-checking on every DOM change. A run is real bridge and React work whose
+// Waits until `check` passes, looking again after the DOM changes. A run is real bridge and React work whose
 // length grows with machine load, so a fixed window here measures the machine, not the page. The wait has
 // no deadline of its own: the test timeout catches a hang, and then the last failed check is printed.
 function until<T>(check: () => T): Promise<T> {
@@ -38,12 +38,15 @@ function until<T>(check: () => T): Promise<T> {
       new Promise<T>((resolve) => {
         let last: unknown
         let done = false
+        let queued: ReturnType<typeof setTimeout> | undefined
         const stop = () => {
           done = true
           observer.disconnect()
           clearInterval(poll)
+          clearTimeout(queued)
         }
         const attempt = () => {
+          queued = undefined
           if (done) return
           try {
             const value = check()
@@ -53,10 +56,14 @@ function until<T>(check: () => T): Promise<T> {
             last = error
           }
         }
-        const observer = new MutationObserver(attempt)
+        // A run makes hundreds of changes, and a check per change would compete with the run for the CPU.
+        // One check per task after a burst sees the same end state.
+        const observer = new MutationObserver(() => {
+          queued ??= setTimeout(attempt, 0)
+        })
         observer.observe(document, { subtree: true, childList: true, attributes: true, characterData: true })
         // Some state (the bridge's snapshot) isn't in the DOM, so look again now and then too.
-        const poll = setInterval(attempt, 20)
+        const poll = setInterval(attempt, 50)
         onTestFailed(() => {
           if (!done) console.error("until: still waiting on", last)
         })
