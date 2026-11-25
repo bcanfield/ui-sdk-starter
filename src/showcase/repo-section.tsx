@@ -1,11 +1,11 @@
 import { useId } from "react"
 import { Section } from "../sections/section.tsx"
+import { sourceFile, TESTING_DOCS } from "./links.ts"
 import paneTest from "./project-pane.test.tsx?raw"
 import "./repo-section.css"
 
-const REPO = "https://github.com/bcanfield/ui-sdk-starter/blob/main/"
-const MARK_TEST = `${REPO}src/showcase/project-mark/project-mark.test.ts`
-const DOCS = "https://ui-sdk.dev/docs/core#testing"
+const PANE_TEST = "src/showcase/project-pane.test.tsx"
+const MARK_TEST = sourceFile("src/showcase/project-mark/project-mark.test.ts")
 
 const STRIP_FOLDER = "src/showcase/"
 const STRIP_IMPORT = "Showcase"
@@ -20,7 +20,7 @@ const HELPERS = [
   { name: "mount", does: "renders a primitive's parts and drives them like a user", href: MARK_TEST, used: true },
   { name: "checkDirection", does: "arrow keys follow the reading direction", href: MARK_TEST, used: true },
   { name: "checkPattern", does: "roles, names, states and keys match an ARIA pattern", href: MARK_TEST, used: true },
-  { name: "checkServer", does: "creating the primitive reads no browser globals", href: DOCS, used: false },
+  { name: "checkServer", does: "creating the primitive reads no browser globals", href: TESTING_DOCS, used: false },
 ]
 
 function excerpt(source: string) {
@@ -44,8 +44,8 @@ function RepoSection() {
 
       <figure className="repo-figure">
         <figcaption>
-          <a href={`${REPO}src/showcase/project-pane.test.tsx`} target="_blank" rel="noreferrer">
-            src/showcase/project-pane.test.tsx ↗
+          <a href={sourceFile(PANE_TEST)} target="_blank" rel="noreferrer">
+            {PANE_TEST} ↗
           </a>
         </figcaption>
         <pre aria-label="Agent test excerpt">

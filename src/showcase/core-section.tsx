@@ -2,11 +2,11 @@ import { Tabs, TabsIndicator, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react
 import { Toggle } from "@ui-sdk/react/toggle"
 import { useEffect, useId, useState } from "react"
 import { Section } from "../sections/section.tsx"
+import { sourceFile } from "./links.ts"
 import { ProjectMark } from "./project-mark/project-mark.tsx"
 import "./core-section.css"
 
-const SOURCE =
-  "https://github.com/bcanfield/ui-sdk-starter/blob/main/src/showcase/project-mark/project-mark.ts"
+const MARK_SOURCE = sourceFile("src/showcase/project-mark/project-mark.ts")
 
 const LEGEND = [
   { keys: ["↑", "↓", "←", "→"], does: "move between marks" },
@@ -88,7 +88,7 @@ function CoreSection() {
         >
           Right to left
         </Toggle>
-        <a href={SOURCE} target="_blank" rel="noreferrer">
+        <a href={MARK_SOURCE} target="_blank" rel="noreferrer">
           project-mark.ts source ↗
         </a>
       </div>
