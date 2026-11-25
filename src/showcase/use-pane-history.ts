@@ -4,6 +4,7 @@ import { agent } from "../agent.ts"
 import { messageOf } from "./message-of.ts"
 import { isTabSwitch, itemLabel } from "./pane-items.ts"
 import { paneIn } from "./pane-scope.ts"
+import type { BridgeLock } from "./use-bridge-lock.ts"
 
 type LogEntry = { id: string; source: "agent" | "you"; text: string; reverted: boolean }
 type Missed = { ref: string; key: string }
@@ -35,10 +36,9 @@ function describeMissed(missed: Missed[], entries: readonly HistoryEntry[]) {
   return { text: `Couldn't put back: ${labels.join(", ")}`, title: detail.join(", ") }
 }
 
-function usePaneHistory(runGrid: RefObject<HTMLElement | null>) {
+function usePaneHistory(runGrid: RefObject<HTMLElement | null>, lock: BridgeLock) {
   const history = useRef<ReturnType<typeof createHistory> | null>(null)
   const [entries, setEntries] = useState<readonly HistoryEntry[]>([])
-  const [undoing, setUndoing] = useState(false)
   const [result, setResult] = useState<UndoResult>({ text: "" })
   const generation = useRef(0)
 
@@ -59,33 +59,31 @@ function usePaneHistory(runGrid: RefObject<HTMLElement | null>) {
     generation.current++
     history.current?.clear()
     setEntries([])
-    setUndoing(false)
     setResult({ text: "" })
   }
 
-  async function undoAgent() {
+  function undoAgent() {
     const recorder = history.current
     if (!recorder) return
-    const started = ++generation.current
-    setUndoing(true)
-    setResult({ text: "" })
-    let outcome: UndoResult
-    try {
-      const missed = await recorder.undoSource("agent")
-      outcome = missed.length ? describeMissed(missed, recorder.entries()) : { text: UNDONE }
-    } catch (error) {
-      outcome = { text: `Couldn't undo the agent: ${messageOf(error)}` }
-    }
-    if (history.current !== recorder || generation.current !== started) return
-    setUndoing(false)
-    setResult(outcome)
+    return lock.hold("undo", async () => {
+      const started = ++generation.current
+      setResult({ text: "" })
+      let outcome: UndoResult
+      try {
+        const missed = await recorder.undoSource("agent")
+        outcome = missed.length ? describeMissed(missed, recorder.entries()) : { text: UNDONE }
+      } catch (error) {
+        outcome = { text: `Couldn't undo the agent: ${messageOf(error)}` }
+      }
+      if (history.current !== recorder || generation.current !== started) return
+      setResult(outcome)
+    })
   }
 
   const shown = entries.filter((entry) => !isTabSwitch(entry))
   return {
     log: shown.map(toLogEntry),
-    canUndo: !undoing && shown.some((entry) => entry.source === "agent" && !entry.reverted),
-    undoing,
+    canUndo: !lock.busy && shown.some((entry) => entry.source === "agent" && !entry.reverted),
     result,
     undoAgent,
     clear,

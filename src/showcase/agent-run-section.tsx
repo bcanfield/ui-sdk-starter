@@ -5,6 +5,7 @@ import { AgentTrace } from "./agent-trace.tsx"
 import { NowPlaying } from "./now-playing.tsx"
 import { ProjectPane } from "./project-pane.tsx"
 import { useAgentTrace } from "./use-agent-trace.ts"
+import { useBridgeLock } from "./use-bridge-lock.ts"
 import { usePaneHistory } from "./use-pane-history.ts"
 import { useWide } from "./use-wide.ts"
 import { defaultPacing, usePlanPlayer, type Pacing } from "./use-plan-player.ts"
@@ -13,8 +14,9 @@ function AgentRunSection({ pacing = defaultPacing }: { pacing?: Pacing }) {
   const runGrid = useRef<HTMLDivElement>(null)
   const paneWrap = useRef<HTMLDivElement>(null)
   const trace = useAgentTrace(paneWrap)
-  const history = usePaneHistory(runGrid)
-  const player = usePlanPlayer(pacing, runGrid, { trace, onReset: history.clear })
+  const lock = useBridgeLock()
+  const history = usePaneHistory(runGrid, lock)
+  const player = usePlanPlayer(pacing, runGrid, { trace, onReset: history.clear, lock })
   const wide = useWide()
   return (
     <Section

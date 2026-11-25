@@ -5,6 +5,7 @@ import { useState } from "react"
 import { agent } from "../agent.ts"
 import { messageOf } from "./message-of.ts"
 import { describeOutcome } from "./plan.ts"
+import type { BridgeLock } from "./use-bridge-lock.ts"
 
 const example = JSON.stringify(
   { steps: [{ ref: "Project name", action: "setValue", args: ["Apollo Edge"] }] },
@@ -14,21 +15,9 @@ const example = JSON.stringify(
 
 type Act = Parameters<typeof agent.act>[0]
 
-function OwnStep({
-  disabled,
-  onBusyChange,
-}: {
-  disabled: boolean
-  onBusyChange: (busy: boolean) => void
-}) {
+function OwnStep({ lock }: { lock: BridgeLock }) {
   const [text, setText] = useState(example)
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
-  const [busy, setBusyState] = useState(false)
-
-  function setBusy(next: boolean) {
-    setBusyState(next)
-    onBusyChange(next)
-  }
 
   async function run() {
     let call: unknown
@@ -41,20 +30,19 @@ function OwnStep({
       })
       return
     }
-    setBusy(true)
-    setResult(null)
-    try {
-      const outcome = await agent.act(call as Act)
-      setResult(
-        outcome.ok
-          ? { ok: true, text: `ok: ${describeOutcome(outcome)}` }
-          : { ok: false, text: `error: ${outcome.error?.message}` }
-      )
-    } catch (error) {
-      setResult({ ok: false, text: `error: ${messageOf(error)}` })
-    } finally {
-      setBusy(false)
-    }
+    await lock.hold("own step", async () => {
+      setResult(null)
+      try {
+        const outcome = await agent.act(call as Act)
+        setResult(
+          outcome.ok
+            ? { ok: true, text: `ok: ${describeOutcome(outcome)}` }
+            : { ok: false, text: `error: ${outcome.error?.message}` }
+        )
+      } catch (error) {
+        setResult({ ok: false, text: `error: ${messageOf(error)}` })
+      }
+    })
   }
 
   return (
@@ -70,7 +58,7 @@ function OwnStep({
         />
       </Field>
       <div className="log-actions">
-        <Button onClick={run} disabled={disabled || busy}>
+        <Button onClick={run} disabled={lock.busy}>
           Run step
         </Button>
         <output

@@ -52,20 +52,19 @@ test("when undo fails, Undo agent comes back and the error shows", async () => {
   expect(screen.getByRole("button", { name: "Undo agent" })).toBeEnabled()
 })
 
-test("Reset while an undo is still settling: its stale result never lands", async () => {
+test("Reset waits while an undo is still settling, then the undo's result lands", async () => {
   const user = renderRun()
   await runWithAllow(user)
   let resolve = () => {}
-  const promise = new Promise<void>((done) => (resolve = done))
-  undo.hold = promise
+  undo.hold = new Promise<void>((done) => (resolve = done))
   await press(user, "Undo agent")
   const ask = await gate()
   await user.click(within(ask).getByRole("button", { name: "Allow" }))
   await gateClosed()
-  await press(user, "Reset")
-  expect(screen.getByRole("button", { name: "Run" })).toBeEnabled()
-  resolve()
-  await promise
-  await new Promise((settle) => setTimeout(settle, 0))
+  expect(screen.getByRole("button", { name: "Reset" })).toBeDisabled()
   expect(undoResult()).toBeEmptyDOMElement()
+
+  resolve()
+  await until(() => expect(screen.getByRole("button", { name: "Reset" })).toBeEnabled())
+  expect(undoResult()).toHaveTextContent("Agent's changes undone. Yours stayed.")
 })

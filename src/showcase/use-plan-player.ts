@@ -4,6 +4,7 @@ import { agent, onAnswer } from "../agent.ts"
 import { reducedMotion } from "./motion.ts"
 import { inPane } from "./pane-scope.ts"
 import { controlOf, describeOutcome, describeRead, plan, type StepState } from "./plan.ts"
+import type { BridgeLock } from "./use-bridge-lock.ts"
 
 type Row = { state: StepState; note?: string; refusedBy?: "person" }
 type Pacing = { leadIn: number; between: number }
@@ -32,7 +33,7 @@ const isConfirmOpen = () => overlays.entries().some((entry) => entry.type === "c
 function usePlanPlayer(
   pacing: Pacing,
   runGrid: RefObject<HTMLElement | null>,
-  { trace, onReset }: { trace: Trace; onReset: () => void }
+  { trace, onReset, lock }: { trace: Trace; onReset: () => void; lock: BridgeLock }
 ) {
   const [rows, setRows] = useState(idleRows)
   const [next, setNext] = useState(0)
@@ -40,7 +41,6 @@ function usePlanPlayer(
   const [result, setResult] = useState("")
   const [paneKey, setPaneKey] = useState(0)
   const [active, setActive] = useState(-1)
-  const [held, setHeld] = useState(false)
   const traceRef = useRef(trace)
   useEffect(() => {
     traceRef.current = trace
@@ -209,11 +209,9 @@ function usePlanPlayer(
     finished: next >= plan.length,
     result,
     paneKey,
-    // An own step holds the bridge, so the plan waits rather than read its confirm as the plan's own.
-    held,
-    hold: setHeld,
-    run: () => play(plan.length),
-    step: () => play(1),
+    lock,
+    run: () => lock.hold("plan", () => play(plan.length)),
+    step: () => lock.hold("plan", () => play(1)),
     stop,
     reset,
   }

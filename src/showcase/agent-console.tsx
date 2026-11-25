@@ -33,7 +33,7 @@ function AgentConsole({
   const [tab, selectTab] = useUrlParam("console", toTab, fromTab)
   const [offered] = useState(webMcpOffered)
   const snapshot = usePaneSnapshot(runGrid, player.paneKey, tab === "snapshot")
-  const { rows, running, result } = player
+  const { rows, result } = player
 
   return (
     <div className="console" data-agent-hidden>
@@ -94,7 +94,7 @@ function AgentConsole({
           <output className="run-result" aria-label="Run result">
             {result}
           </output>
-          <OwnStep disabled={running} onBusyChange={player.hold} />
+          <OwnStep lock={player.lock} />
         </TabsPanel>
         <TabsPanel value="snapshot">
           <p className="console-task">What the agent sees on the pane, live.</p>
@@ -123,7 +123,7 @@ function AgentConsole({
           <div className="log-actions">
             <Button
               onClick={history.undoAgent}
-              disabled={player.running || !history.canUndo}
+              disabled={!history.canUndo}
             >
               Undo agent
             </Button>
