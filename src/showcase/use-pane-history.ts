@@ -40,7 +40,6 @@ function usePaneHistory(runGrid: RefObject<HTMLElement | null>, lock: BridgeLock
   const history = useRef<ReturnType<typeof createHistory> | null>(null)
   const [entries, setEntries] = useState<readonly HistoryEntry[]>([])
   const [result, setResult] = useState<UndoResult>({ text: "" })
-  const generation = useRef(0)
 
   useEffect(() => {
     const recorder = createHistory(agent, {
@@ -56,7 +55,6 @@ function usePaneHistory(runGrid: RefObject<HTMLElement | null>, lock: BridgeLock
   }, [runGrid])
 
   function clear() {
-    generation.current++
     history.current?.clear()
     setEntries([])
     setResult({ text: "" })
@@ -66,7 +64,6 @@ function usePaneHistory(runGrid: RefObject<HTMLElement | null>, lock: BridgeLock
     const recorder = history.current
     if (!recorder) return
     return lock.hold("undo", async () => {
-      const started = ++generation.current
       setResult({ text: "" })
       let outcome: UndoResult
       try {
@@ -75,7 +72,7 @@ function usePaneHistory(runGrid: RefObject<HTMLElement | null>, lock: BridgeLock
       } catch (error) {
         outcome = { text: `Couldn't undo the agent: ${messageOf(error)}` }
       }
-      if (history.current !== recorder || generation.current !== started) return
+      if (history.current !== recorder) return
       setResult(outcome)
     })
   }
