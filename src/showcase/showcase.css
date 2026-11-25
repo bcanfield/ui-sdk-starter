@@ -18,7 +18,7 @@
 
   /* Clears the sticky strip (and the trace's tag) when the player scrolls a control into view. */
   & [data-trace] {
-    scroll-margin-block-start: 5rem;
+    scroll-margin-block-start: 7rem;
   }
 }
 
@@ -53,7 +53,7 @@
   align-items: start;
 }
 
-/* 56rem is also WIDE in use-wide.ts, which moves Run, Step and Stop between the strip and the console. */
+/* 56rem is also WIDE in use-wide.ts, which moves Run, Step, Stop and Reset between the strip and the console. */
 @media (min-width: 56rem) {
   #agent-run {
     --run-width: min(var(--width-wide), calc(100vw - 4rem));
@@ -146,8 +146,9 @@
   /* A fixed first track: sized to its content, it followed the status word and slid the narration sideways. */
   grid-template-columns: 4.75rem minmax(0, 1fr) auto;
   grid-template-areas:
-    "count say buttons"
-    "status say buttons";
+    "count . buttons"
+    "status . buttons"
+    "say say say";
   column-gap: 0.75rem;
   align-items: center;
   min-width: 0;
@@ -174,10 +175,11 @@
   }
 }
 
-/* Two lines, always: Run, Step and Stop leave a narrow column at 390px, and one line cut most steps to two
-   words. The fixed height keeps the strip from growing when a step needs the second line. */
+/* Its own row: four buttons beside it left two letters at 390px. The fixed two-line height keeps the strip
+   from growing when the task needs the second line. */
 .now-playing-say {
   grid-area: say;
+  margin-top: 0.375rem;
   display: -webkit-box;
   height: calc(2lh);
   overflow: hidden;

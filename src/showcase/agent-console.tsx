@@ -43,10 +43,11 @@ function AgentConsole({
           <span aria-hidden="true">{offered ? "●" : "○"}</span>
           {offered ? "WebMCP: tools offered to this browser's agent" : "WebMCP: not detected"}
         </span>
-        <div className="player">
-          {playHere && <PlayButtons player={player} />}
-          <Button onClick={player.reset}>Reset</Button>
-        </div>
+        {playHere && (
+          <div className="player">
+            <PlayButtons player={player} />
+          </div>
+        )}
       </div>
       <p className="console-note">
         The agent can't see or press this console. It's scripted: a written plan, no

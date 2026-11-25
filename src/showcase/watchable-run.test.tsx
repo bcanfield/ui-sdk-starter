@@ -127,16 +127,15 @@ function stubWidth(wide: boolean) {
   }))
 }
 
-const playButtons = () => screen.getAllByRole("button", { name: /^(Run|Step|Stop)$/ })
+const playButtons = () => screen.getAllByRole("button", { name: /^(Run|Step|Stop|Reset)$/ })
 
-test("below 56rem the strip holds the only Run, Step and Stop, and narrates the step with its status", async () => {
+test("below 56rem the strip holds the only Run, Step, Stop and Reset, and narrates the step with its status", async () => {
   stubWidth(false)
   const { user } = renderRun()
   const strip = screen.getByRole("group", { name: "Now playing" })
-  expect(playButtons()).toHaveLength(3)
+  expect(playButtons()).toHaveLength(4)
   for (const button of playButtons()) expect(strip).toContainElement(button)
   expect(strip).toHaveTextContent("Move Apollo to Frankfurt, scale it, give it a mark and make it public")
-  expect(strip).not.toContainElement(screen.getByRole("button", { name: "Reset" }))
 
   await user.click(within(strip).getByRole("button", { name: "Run" }))
   await gate()
@@ -170,9 +169,19 @@ test("a refused step reads refused in the strip", async () => {
   expect(strip).toHaveTextContent("refused")
 })
 
-test("from 56rem the console holds the only Run, Step and Stop, and there is no strip", () => {
+test("from 56rem the console holds the only Run, Step, Stop and Reset, and there is no strip", () => {
   stubWidth(true)
   renderRun()
   expect(screen.queryByRole("group", { name: "Now playing" })).toBeNull()
-  expect(playButtons()).toHaveLength(3)
+  expect(playButtons()).toHaveLength(4)
+})
+
+test("below 56rem Reset in the strip resets the run", async () => {
+  stubWidth(false)
+  const { user } = renderRun()
+  const strip = screen.getByRole("group", { name: "Now playing" })
+  await user.click(within(strip).getByRole("button", { name: "Step" }))
+  await stateIs("Read the page", "done")
+  await user.click(within(strip).getByRole("button", { name: "Reset" }))
+  expect(rowOf("Read the page")).toHaveAttribute("data-state", "idle")
 })

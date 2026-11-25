@@ -15,6 +15,7 @@ function PlayButtons({ player }: { player: PlanPlayer }) {
       <Button onClick={player.stop} disabled={!player.running}>
         Stop
       </Button>
+      <Button onClick={player.reset}>Reset</Button>
     </>
   )
 }
