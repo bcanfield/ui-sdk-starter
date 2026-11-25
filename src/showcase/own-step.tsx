@@ -3,6 +3,7 @@ import { Field, FieldLabel } from "@ui-sdk/react/field"
 import { Textarea } from "@ui-sdk/react/textarea"
 import { useState } from "react"
 import { agent } from "../agent.ts"
+import { messageOf } from "./message-of.ts"
 import { describeOutcome } from "./plan.ts"
 
 const example = JSON.stringify(
@@ -12,8 +13,6 @@ const example = JSON.stringify(
 )
 
 type Act = Parameters<typeof agent.act>[0]
-
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
 function OwnStep({
   disabled,

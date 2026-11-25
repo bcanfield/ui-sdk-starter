@@ -1,6 +1,7 @@
 import { createHistory, type HistoryEntry } from "@ui-sdk/react/history"
 import { useEffect, useRef, useState, type RefObject } from "react"
 import { agent } from "../agent.ts"
+import { messageOf } from "./message-of.ts"
 import { isTabSwitch, itemLabel } from "./pane-items.ts"
 import { paneIn } from "./pane-scope.ts"
 
@@ -73,7 +74,7 @@ function usePaneHistory(runGrid: RefObject<HTMLElement | null>) {
       const missed = await recorder.undoSource("agent")
       outcome = missed.length ? describeMissed(missed, recorder.entries()) : { text: UNDONE }
     } catch (error) {
-      outcome = { text: `Couldn't undo the agent: ${error instanceof Error ? error.message : String(error)}` }
+      outcome = { text: `Couldn't undo the agent: ${messageOf(error)}` }
     }
     if (history.current !== recorder || generation.current !== started) return
     setUndoing(false)
