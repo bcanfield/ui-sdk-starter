@@ -1,8 +1,10 @@
 import { screen, within } from "@testing-library/react"
 import { overlays } from "@ui-sdk/react/overlays"
-import { expect, test } from "vitest"
+import { afterEach, expect, test, vi } from "vitest"
 import { agent } from "../agent.ts"
 import { gate, gateClosed, press, renderRun, until, type User } from "./run-kit.tsx"
+
+afterEach(() => vi.restoreAllMocks())
 
 const SAY = [
   "Read the page",
@@ -154,6 +156,25 @@ test("Stop between steps keeps what applied and leaves the rest ready", async ()
   await press(user, "Run")
   await stateIs("Rename the project", "done")
   expect(pane.name()).toHaveValue("Apollo API")
+})
+
+test("Stop during the read leaves it ready, not done", async () => {
+  const { user } = renderRun()
+  const query = agent.query.bind(agent)
+  let release = () => {}
+  const held = new Promise<void>((done) => (release = done))
+  vi.spyOn(agent, "query").mockImplementationOnce(async (options) => {
+    await held
+    return query(options)
+  })
+  await press(user, "Run")
+  await stateIs("Read the page", "running")
+  await press(user, "Stop")
+  release()
+  await idle()
+  expect(stateOf("Read the page")).toBe("idle")
+  expect(row("Read the page")).toHaveTextContent("Stopped before it applied.")
+  expect(states()).toEqual(Array(9).fill("idle"))
 })
 
 test("Stop right after Allow: the step reads as the pane shows it, and the next Run doesn't redo it", async () => {

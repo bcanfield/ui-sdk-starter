@@ -108,6 +108,7 @@ function usePlanPlayer(
     if (!step.steps) {
       const closed = await agent.query({ closed: true })
       if (id !== runId.current) return false
+      if (signal.aborted) return stopped(index, id)
       setRow(index, {
         state: "done",
         note: describeRead(closed, agent.snapshot(), (entry) => inPane(paneRoot, entry)),
