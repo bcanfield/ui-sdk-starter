@@ -41,7 +41,8 @@
   overscroll-behavior: contain;
   border: 1px solid var(--ui-border);
   border-radius: var(--radius-lg);
-  background: var(--surface-card);
+  background: var(--surface-floating);
+  backdrop-filter: blur(var(--blur-floating));
   box-shadow: var(--ui-shadow);
   color: var(--fg-primary);
   transform-origin: var(--transform-origin);
